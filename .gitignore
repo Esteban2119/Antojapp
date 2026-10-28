@@ -1,0 +1,10 @@
+# Excluir node_modules en cualquier carpeta
+node_modules/
+**/node_modules/
+
+# Archivos temporales de Angular
+.angular/
+dist/
+
+# Archivos generados de Java
+target/
