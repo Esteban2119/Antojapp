@@ -1,0 +1,136 @@
+<div [class.container]="!esLocal">
+ <a class="back" [routerLink]="base"><app-icon name="arrowLeft" [size]="16" />{{ esLocal ? 'Volver a pedidos' : 'Volver a mis pedidos' }}</a>
+
+ @if (cargando) {
+  <div class="skeleton" style="height:420px;margin-top:24px"></div>
+ } @else if (noEncontrado || !pedido) {
+  <div class="empty" style="margin-top:24px"><span class="empty-icon"><app-icon name="search" [size]="28" /></span><h3>Pedido no encontrado</h3><p>Este pedido no existe o no pertenece a tu cuenta.</p><a class="btn btn-primary" [routerLink]="base">Ver pedidos</a></div>
+ } @else {
+  @let p = pedido;
+  <div class="page-head">
+   <div>
+    <span class="eyebrow">Detalle del pedido</span>
+    <h1>Pedido #{{p.id}}</h1>
+    <p>{{p.fecha | date:"EEEE d 'de' MMMM yyyy, HH:mm"}} · {{ esLocal ? p.cliente : p.restauranteNombre }}</p>
+   </div>
+   <div class="head-actions">
+    <span [class]="'badge big estado-' + p.estado"><app-icon [name]="estados[p.estado].icono" [size]="15" />{{estados[p.estado].label}}</span>
+    @if (facturaDisponible(p)) { <a class="btn btn-ghost" [routerLink]="[base, p.id, 'factura']"><app-icon name="file" [size]="16" />Ver factura</a> }
+   </div>
+  </div>
+
+  @if (p.estado === 'RECHAZADO') {
+   <div class="alert error"><app-icon name="xCircle" />{{ esLocal ? 'Rechazaste este pedido.' : 'El restaurante no pudo aceptar tu pedido.' }}@if (p.motivoRechazo) { Motivo: “{{p.motivoRechazo}}”}</div>
+  } @else {
+   <div class="panel timeline-panel">
+    <div class="timeline">
+     @for (s of flujo; track s; let i = $index) {
+      <div class="t-step" [class.done]="i <= paso" [class.current]="i === paso">
+       <span class="dot"><app-icon [name]="i < paso ? 'check' : estados[s].icono" [size]="16" /></span><small>{{estados[s].label}}</small>
+      </div>
+     }
+    </div>
+   </div>
+  }
+
+  @if (esLocal && p.estado === 'RECIBIDO') {
+   <div class="panel action-panel">
+    <div><b>Nuevo pedido por confirmar</b><small>{{ p.metodoPago==='TRANSFERENCIA' ? 'Verifica la transferencia con el comprobante ' + p.comprobante + ' antes de confirmar.' : 'El cliente pagará en efectivo al recibir.' }}</small></div>
+    @if (rechazando) {
+     <div class="reject"><input class="input" [(ngModel)]="motivo" placeholder="Motivo (opcional): ej. producto agotado"><button class="btn btn-ghost btn-sm" (click)="rechazando=false">Cancelar</button><button class="btn btn-danger btn-sm" (click)="cambiarEstado('RECHAZADO', motivo)" [disabled]="procesando">Confirmar rechazo</button></div>
+    } @else {
+     <div class="actions"><button class="btn btn-danger" (click)="rechazando=true;motivo=''" [disabled]="procesando"><app-icon name="x" [size]="16" />Rechazar</button><button class="btn btn-ok" (click)="cambiarEstado('CONFIRMADO')" [disabled]="procesando"><app-icon name="check" [size]="16" />Confirmar pedido</button></div>
+    }
+   </div>
+  } @else if (esLocal && siguiente[p.estado]) {
+   <div class="panel action-panel">
+    <div><b>Siguiente paso</b><small>Actualiza el estado para que el cliente vea el progreso.</small></div>
+    <button class="btn btn-dark" (click)="cambiarEstado(siguiente[p.estado]!.estado)" [disabled]="procesando"><app-icon [name]="siguiente[p.estado]!.icono" [size]="16" />{{siguiente[p.estado]!.label}}</button>
+   </div>
+  }
+
+  <div class="grid">
+   <div class="col">
+    <div class="panel">
+     <h3>Productos</h3>
+     <table class="items">
+      <thead><tr><th>Producto</th><th class="c">Cant.</th><th class="r">P. unitario</th><th class="r">Total</th></tr></thead>
+      <tbody>
+       @for (d of detalle(p); track $index) {
+        <tr>
+         <td><b>{{d.nombre}}</b>@if (d.descuento) {<span class="off">-{{d.descuento}}%</span>}</td>
+         <td class="c">{{d.cantidad}}</td>
+         <td class="r">@if (d.descuento) {<span class="price-old">{{d.precioOriginal | currency:'USD':'symbol-narrow'}}</span> }{{d.precio | currency:'USD':'symbol-narrow'}}</td>
+         <td class="r"><b>{{d.cantidad * d.precio | currency:'USD':'symbol-narrow'}}</b></td>
+        </tr>
+       }
+      </tbody>
+     </table>
+     @let t = totales(p);
+     <div class="totals">
+      @if (t.descuentos > 0) { <div class="line ok"><span>Ahorro por descuentos</span><span>−{{t.descuentos | currency:'USD':'symbol-narrow'}}</span></div> }
+      <div class="line"><span>Subtotal sin IVA</span><span>{{t.base | currency:'USD':'symbol-narrow'}}</span></div>
+      <div class="line"><span>IVA 15 %</span><span>{{t.iva | currency:'USD':'symbol-narrow'}}</span></div>
+      <div class="line"><span>Envío</span><span>Gratis</span></div>
+      <div class="line grand"><span>Total</span><b>{{t.total | currency:'USD':'symbol-narrow'}}</b></div>
+     </div>
+    </div>
+
+    <div class="panel">
+     <h3>Entrega</h3>
+     <div class="info-list">
+      <div><app-icon name="pin" [size]="17" /><div><small>Dirección</small><b>{{p.direccion}}</b>@if (p.referencia) {<span>{{p.referencia}}</span>}</div></div>
+     </div>
+     @if (p.latitud && p.longitud) {
+      <app-mapa-vista [lat]="p.latitud" [lng]="p.longitud" />
+      <a class="map-link" [href]="mapaUrl(p.latitud, p.longitud)" target="_blank" rel="noopener"><app-icon name="external" [size]="14" />Abrir en OpenStreetMap</a>
+     }
+    </div>
+   </div>
+
+   <div class="col">
+    <div class="panel">
+     <h3>Pago</h3>
+     @if (p.metodoPago === 'TRANSFERENCIA' && p.cuentaPago) {
+      <div class="pay-head"><img [src]="cuentas[p.cuentaPago].logo" [alt]="cuentas[p.cuentaPago].nombre"><div><b>Transferencia</b><small>{{cuentas[p.cuentaPago].nombre}}</small></div></div>
+      <div class="kv"><span>Comprobante</span><b>{{p.comprobante}}</b></div>
+      <div class="kv"><span>Monto</span><b>{{p.total | currency:'USD':'symbol-narrow'}}</b></div>
+      @if (!esLocal && restaurante) { <app-cuenta-pago [restaurante]="restaurante" [cuenta]="p.cuentaPago" /> }
+     } @else {
+      <div class="pay-head"><span class="cash"><app-icon name="cash" [size]="22" /></span><div><b>Efectivo</b><small>Pago contra entrega</small></div></div>
+      <div class="kv"><span>A cobrar</span><b>{{p.total | currency:'USD':'symbol-narrow'}}</b></div>
+      @if (p.pagaCon) {
+       <div class="kv"><span>Paga con</span><b>{{p.pagaCon | currency:'USD':'symbol-narrow'}}</b></div>
+       <div class="kv ok"><span>Vuelto</span><b>{{vuelto | currency:'USD':'symbol-narrow'}}</b></div>
+      }
+     }
+    </div>
+
+    <div class="panel">
+     <h3>{{ esLocal ? 'Cliente' : 'Restaurante' }}</h3>
+     <div class="info-list">
+      @if (esLocal) {
+       <div><app-icon name="user" [size]="17" /><div><small>Nombre</small><b>{{p.cliente}}</b></div></div>
+       <div><app-icon name="phone" [size]="17" /><div><small>Teléfono</small><a [href]="'tel:' + p.telefono">{{p.telefono}}</a></div></div>
+       <div><app-icon name="mail" [size]="17" /><div><small>Correo</small><a [href]="'mailto:' + p.email">{{p.email}}</a></div></div>
+      } @else {
+       <div><app-icon name="store" [size]="17" /><div><small>Local</small><b>{{p.restauranteNombre}}</b></div></div>
+       @if (restaurante?.direccion) { <div><app-icon name="pin" [size]="17" /><div><small>Dirección</small><b>{{restaurante?.direccion}}</b></div></div> }
+      }
+      <div><app-icon name="idCard" [size]="17" /><div><small>Facturar a</small><b>{{p.razonSocial || 'CONSUMIDOR FINAL'}}</b>@if (p.identificacion) {<span>{{p.identificacion}}</span>}</div></div>
+     </div>
+    </div>
+
+    <div class="panel invoice-cta">
+     <app-icon name="file" [size]="26" />
+     @if (facturaDisponible(p)) {
+      <div><b>Factura N.º {{numeroFactura(p)}}</b><small>Disponible para imprimir o guardar en PDF.</small></div>
+      <a class="btn btn-primary btn-sm" [routerLink]="[base, p.id, 'factura']">Ver factura</a>
+     } @else {
+      <div><b>Factura</b><small>{{ p.estado==='RECHAZADO' ? 'No se emite factura para pedidos rechazados.' : 'Estará disponible cuando el restaurante confirme el pedido.' }}</small></div>
+     }
+    </div>
+   </div>
+  </div>
+ }
+</div>

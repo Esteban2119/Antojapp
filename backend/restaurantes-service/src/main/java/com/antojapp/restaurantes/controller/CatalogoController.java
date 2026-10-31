@@ -12,6 +12,19 @@ public class CatalogoController {
  public CatalogoController(RestauranteRepository restaurantes,ProductoRepository productos){this.restaurantes=restaurantes;this.productos=productos;}
  @GetMapping("/restaurantes") public List<Restaurante> listarRestaurantes(){return restaurantes.findAll();}
  @PostMapping("/restaurantes") public Restaurante crearRestaurante(@RequestBody Restaurante r){r.id=null;return restaurantes.save(r);}
+ @GetMapping("/restaurantes/{id}") public ResponseEntity<Restaurante> restaurante(@PathVariable Long id){return restaurantes.findById(id).map(ResponseEntity::ok).orElseGet(()->ResponseEntity.notFound().build());}
+ // El local actualiza su informacion y sus datos bancarios
+ @PutMapping("/restaurantes/{id}") public ResponseEntity<?> actualizarRestaurante(@PathVariable Long id,@RequestBody Restaurante d){
+  Optional<Restaurante> actual=restaurantes.findById(id);
+  if(actual.isEmpty())return ResponseEntity.notFound().build();
+  if(d.nombre==null||d.nombre.isBlank())return ResponseEntity.badRequest().body(Map.of("error","El nombre es obligatorio"));
+  if(d.ruc!=null&&!d.ruc.isBlank()&&!d.ruc.trim().matches("\\d{13}"))return ResponseEntity.badRequest().body(Map.of("error","El RUC debe tener 13 dígitos"));
+  if(d.numeroCuenta!=null&&!d.numeroCuenta.isBlank()&&!d.numeroCuenta.trim().matches("\\d{6,20}"))return ResponseEntity.badRequest().body(Map.of("error","El número de cuenta solo debe contener dígitos"));
+  Restaurante r=actual.get();
+  r.nombre=d.nombre.trim();r.descripcion=d.descripcion;r.imagen=d.imagen;r.ruc=d.ruc;r.direccion=d.direccion;
+  r.titularCuenta=d.titularCuenta;r.numeroCuenta=d.numeroCuenta;r.tipoCuenta=d.tipoCuenta;r.telefonoDeuna=d.telefonoDeuna;
+  return ResponseEntity.ok(restaurantes.save(r));
+ }
  @GetMapping("/restaurantes/{id}/productos") public List<Producto> productosDe(@PathVariable Long id){return productos.findByRestauranteIdOrderByIdAsc(id);}
  @GetMapping("/productos") public List<Producto> listarProductos(){return productos.findAll();}
  @PostMapping("/productos") public ResponseEntity<?> crearProducto(@RequestBody Producto p){

@@ -1,0 +1,60 @@
+<div class="page-head">
+ <div><span class="eyebrow">Ajustes</span><h1>Configuración y pagos</h1><p>Información de tu local, datos de facturación y cuentas para recibir transferencias.</p></div>
+</div>
+
+@if (!form) {
+ <div class="skeleton" style="height:500px"></div>
+} @else {
+ <form class="config" (ngSubmit)="guardar()">
+  <div class="config-main">
+   <section class="panel">
+    <h3><app-icon name="store" [size]="18" />Información del local</h3>
+    <div class="store-row">
+     <app-media class="store-logo" [src]="form.imagen" [alt]="form.nombre" [texto]="iniciales(form.nombre)" [fondo]="fondo(form.categoria)" />
+     <label class="field grow">Logo (URL o ruta)<input name="imagen" [(ngModel)]="form.imagen" placeholder="/img/restaurantes/milogo.png"></label>
+    </div>
+    <div class="row-2">
+     <label class="field">Nombre comercial<input name="nombre" [(ngModel)]="form.nombre"></label>
+     <label class="field">Categoría<input [value]="form.categoria" disabled></label>
+    </div>
+    <label class="field">Descripción<input name="descripcion" [(ngModel)]="form.descripcion" placeholder="Ej. Comida tradicional ecuatoriana"></label>
+   </section>
+
+   <section class="panel">
+    <h3><app-icon name="file" [size]="18" />Datos de facturación</h3>
+    <div class="row-2">
+     <label class="field">Razón social<input name="titularCuenta" [(ngModel)]="form.titularCuenta" placeholder="Ej. Mi Restaurante S.A."></label>
+     <label class="field">RUC<input name="ruc" [(ngModel)]="form.ruc" maxlength="13" inputmode="numeric" placeholder="13 dígitos"></label>
+    </div>
+    <label class="field">Dirección matriz<input name="direccion" [(ngModel)]="form.direccion" placeholder="Ej. Av. Amazonas N34-12, Quito"></label>
+   </section>
+
+   <section class="panel">
+    <h3><img class="bank-logo" src="/img/pagos/banco-pichincha.png" alt="Banco Pichincha">Cuenta Banco Pichincha</h3>
+    <div class="row-2">
+     <label class="field">Tipo de cuenta
+      <select name="tipoCuenta" [(ngModel)]="form.tipoCuenta"><option value="Ahorros">Ahorros</option><option value="Corriente">Corriente</option></select>
+     </label>
+     <label class="field">Número de cuenta<input name="numeroCuenta" [(ngModel)]="form.numeroCuenta" inputmode="numeric" placeholder="Ej. 2201234567"></label>
+    </div>
+    <p class="muted small">El titular de la cuenta es la razón social indicada en los datos de facturación.</p>
+   </section>
+
+   <section class="panel">
+    <h3><img class="bank-logo" src="/img/pagos/deuna.png" alt="Deuna">Deuna</h3>
+    <label class="field">Celular vinculado a Deuna<input name="telefonoDeuna" [(ngModel)]="form.telefonoDeuna" inputmode="numeric" maxlength="10" placeholder="09XXXXXXXX"></label>
+   </section>
+  </div>
+
+  <aside class="config-side">
+   <div class="panel sticky">
+    <h3>Vista del cliente</h3>
+    <p class="muted small">Así verán tus datos los clientes que paguen por transferencia.</p>
+    <app-cuenta-pago [restaurante]="form" cuenta="PICHINCHA" />
+    <app-cuenta-pago [restaurante]="form" cuenta="DEUNA" />
+    @if (error) { <div class="alert error"><app-icon name="alert" />{{error}}</div> }
+    <button class="btn btn-primary btn-block" type="submit" [disabled]="guardando">{{ guardando ? 'Guardando…' : 'Guardar cambios' }}</button>
+   </div>
+  </aside>
+ </form>
+}

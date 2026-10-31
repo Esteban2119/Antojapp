@@ -29,7 +29,11 @@
               "src/styles.css"
             ],
             "allowedCommonJsDependencies": [
-              "leaflet"
+              "leaflet",
+              "core-js",
+              "raf",
+              "rgbcolor",
+              "html2canvas"
             ]
           }
         },

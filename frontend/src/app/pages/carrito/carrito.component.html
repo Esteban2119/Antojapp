@@ -1,9 +1,9 @@
 <div class="container">
- <a class="back" routerLink="/"><app-icon name="arrowLeft" [size]="16" />Seguir comprando</a>
- <div class="page-head"><div><span class="eyebrow">Checkout</span><h1>Finalizar pedido</h1><p>Revisa tus productos, indica dónde los recibes y confirma.</p></div></div>
+ <a class="back" routerLink="/cliente/explorar"><app-icon name="arrowLeft" [size]="16" />Seguir comprando</a>
+ <div class="page-head"><div><span class="eyebrow">Checkout</span><h1>Finalizar pedido</h1><p>Revisa tus productos, indica dónde los recibes y elige cómo pagar.</p></div></div>
 
  @if (!carrito.items().length) {
-  <div class="empty"><span class="empty-icon"><app-icon name="bag" [size]="28" /></span><h3>Tu carrito está vacío</h3><p>Explora el menú y agrega tus platos favoritos.</p><a class="btn btn-primary" routerLink="/">Explorar menú</a></div>
+  <div class="empty"><span class="empty-icon"><app-icon name="bag" [size]="28" /></span><h3>Tu carrito está vacío</h3><p>Explora el menú y agrega tus platos favoritos.</p><a class="btn btn-primary" routerLink="/cliente/explorar">Explorar menú</a></div>
  } @else {
   <div class="checkout">
    <div class="left">
@@ -34,11 +34,11 @@
 
     <div class="panel">
      <div class="panel-title"><span class="step">2</span><h3>Datos de contacto</h3></div>
-     <label class="field">Nombre completo<input [(ngModel)]="form.cliente" [class.invalid]="intentado && !form.cliente.trim()" placeholder="Ej. Esteban Sandoval" autocomplete="name"></label>
      <div class="row-2">
-      <label class="field">Correo electrónico<input type="email" [(ngModel)]="form.email" [class.invalid]="intentado && !emailValido" placeholder="tucorreo@ejemplo.com" autocomplete="email"><small>Con este correo podrás consultar tus pedidos.</small></label>
-      <label class="field">Teléfono<input type="tel" [(ngModel)]="form.telefono" [class.invalid]="intentado && !telefonoValido" placeholder="Ej. 0991234567" autocomplete="tel"><small>El restaurante te contactará si es necesario.</small></label>
+      <label class="field">Nombre completo<input [(ngModel)]="form.cliente" [class.invalid]="intentado && !form.cliente.trim()" autocomplete="name"></label>
+      <label class="field">Teléfono<input type="tel" [(ngModel)]="form.telefono" [class.invalid]="intentado && !telefonoValido" placeholder="Ej. 0991234567" autocomplete="tel"></label>
      </div>
+     <label class="field">Correo electrónico<input [value]="form.email" disabled><small>El pedido quedará enlazado a tu cuenta.</small></label>
     </div>
 
     <div class="panel">
@@ -47,18 +47,86 @@
      <label class="field">Dirección<input [(ngModel)]="form.direccion" [class.invalid]="intentado && !form.direccion.trim()" placeholder="Se completa al marcar el mapa, puedes editarla"></label>
      <label class="field">Referencia <small>(opcional)</small><input [(ngModel)]="form.referencia" placeholder="Ej. Casa blanca con portón negro, depto 3B"></label>
     </div>
+
+    <div class="panel">
+     <div class="panel-title"><span class="step">4</span><h3>Método de pago</h3></div>
+     <div class="pay-methods">
+      <button type="button" class="pay-option" [class.selected]="metodo==='EFECTIVO'" (click)="metodo='EFECTIVO'">
+       <span class="radio"></span><span class="pay-icon cash"><app-icon name="cash" [size]="22" /></span>
+       <div><b>Efectivo</b><small>Pagas al recibir tu pedido</small></div>
+      </button>
+      <button type="button" class="pay-option" [class.selected]="metodo==='TRANSFERENCIA'" (click)="metodo='TRANSFERENCIA'">
+       <span class="radio"></span><span class="pay-icon bank"><app-icon name="bank" [size]="22" /></span>
+       <div><b>Transferencia</b><small>Banco Pichincha o Deuna</small></div>
+      </button>
+     </div>
+
+     @if (metodo==='EFECTIVO') {
+      <div class="pay-detail">
+       <label class="field">¿Con cuánto vas a pagar? <small>(opcional, para preparar tu vuelto)</small>
+        <div class="money"><span>$</span><input type="number" min="0" step="0.01" [(ngModel)]="pagaCon" placeholder="0.00"></div>
+       </label>
+       <div class="quick">
+        <button type="button" class="chip" [class.selected]="pagaCon===carrito.total()" (click)="pagaCon=carrito.total()">Monto exacto</button>
+        @for (b of billetes; track b) { <button type="button" class="chip" [class.selected]="pagaCon===b" (click)="pagaCon=b">{{b | currency:'USD':'symbol-narrow':'1.0-0'}}</button> }
+       </div>
+       @if (vuelto !== null) { <div class="change"><span>Tu vuelto</span><b>{{vuelto | currency:'USD':'symbol-narrow'}}</b></div> }
+       @if (carrito.porRestaurante().length > 1) { <small class="hint">Cada restaurante entrega su pedido por separado: ten listo el monto de cada uno.</small> }
+      </div>
+     }
+
+     @if (metodo==='TRANSFERENCIA') {
+      <div class="pay-detail">
+       <div class="banks">
+        @for (c of opciones; track c) {
+         <button type="button" class="bank-option" [class.selected]="cuenta===c" (click)="cuenta=c">
+          <img [src]="cuentas[c].logo" [alt]="cuentas[c].nombre"><span>{{cuentas[c].nombre}}</span>
+         </button>
+        }
+       </div>
+       <ol class="steps">
+        <li>{{ cuenta==='DEUNA' ? 'Abre la app Deuna y elige "Enviar dinero" al número indicado.' : 'Ingresa a tu banca móvil y transfiere a la cuenta indicada.' }}</li>
+        <li>Transfiere el monto exacto de cada restaurante.</li>
+        <li>Escribe el número de comprobante para que el local verifique tu pago.</li>
+       </ol>
+       @for (g of carrito.porRestaurante(); track g.restaurante.id) {
+        <div class="transfer">
+         <app-cuenta-pago [restaurante]="restauranteDe(g.restaurante.id, g.restaurante)" [cuenta]="cuenta" [monto]="g.total" />
+         <label class="field">Número de comprobante<input [(ngModel)]="comprobantes[g.restaurante.id]" [class.invalid]="intentado && !(comprobantes[g.restaurante.id] || '').trim()" placeholder="Ej. 123456789"></label>
+        </div>
+       }
+      </div>
+     }
+    </div>
+
+    <div class="panel">
+     <div class="panel-title"><span class="step">5</span><h3>Datos de facturación</h3></div>
+     <div class="segmented-sm">
+      <button type="button" [class.active]="!conFactura" (click)="conFactura=false">Consumidor final</button>
+      <button type="button" [class.active]="conFactura" (click)="conFactura=true">Factura con mis datos</button>
+     </div>
+     @if (conFactura) {
+      <div class="row-2">
+       <label class="field">Cédula o RUC<input [(ngModel)]="factura.identificacion" [class.invalid]="intentado && !identificacionValida" maxlength="13" inputmode="numeric" placeholder="10 o 13 dígitos"></label>
+       <label class="field">Nombre o razón social<input [(ngModel)]="factura.razonSocial" [class.invalid]="intentado && !factura.razonSocial.trim()"></label>
+      </div>
+     } @else { <p class="muted small">La factura se emitirá a nombre de CONSUMIDOR FINAL.</p> }
+    </div>
    </div>
 
    <aside class="panel summary">
     <h3>Resumen del pedido</h3>
-    <div class="total-line"><span>Subtotal</span><span>{{carrito.subtotal() | currency:'USD':'symbol-narrow'}}</span></div>
+    <div class="total-line"><span>Productos</span><span>{{carrito.subtotal() | currency:'USD':'symbol-narrow'}}</span></div>
     @if (carrito.ahorro() > 0) { <div class="total-line savings"><span><app-icon name="tag" [size]="15" />Descuentos</span><span>−{{carrito.ahorro() | currency:'USD':'symbol-narrow'}}</span></div> }
     <div class="total-line"><span>Envío</span><span class="free">Gratis</span></div>
     <hr>
+    <div class="total-line small"><span>Subtotal sin IVA</span><span>{{base | currency:'USD':'symbol-narrow'}}</span></div>
+    <div class="total-line small"><span>IVA 15 %</span><span>{{iva | currency:'USD':'symbol-narrow'}}</span></div>
     <div class="total-line grand"><span>Total</span><b>{{carrito.total() | currency:'USD':'symbol-narrow'}}</b></div>
+    @if (metodo) { <div class="pay-summary"><app-icon [name]="metodo==='EFECTIVO' ? 'cash' : 'bank'" [size]="16" />{{ metodo==='EFECTIVO' ? 'Pago en efectivo' : 'Transferencia · ' + cuentas[cuenta].nombre }}</div> }
     @if (error) { <div class="alert error"><app-icon name="alert" />{{error}}</div> }
     <button class="btn btn-primary btn-lg btn-block" (click)="confirmar()" [disabled]="enviando">{{ enviando ? 'Enviando pedido…' : 'Confirmar pedido' }}@if (!enviando) {<app-icon name="arrowRight" [size]="18" />}</button>
-    <small class="note"><app-icon name="lock" [size]="13" />Pago simulado: no se cobra dinero real.</small>
+    <small class="note"><app-icon name="lock" [size]="13" />Tus datos se envían de forma segura al restaurante.</small>
    </aside>
   </div>
  }

@@ -1,0 +1,54 @@
+.head-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.badge.big{padding:9px 14px;font-size:13px}
+.timeline-panel{margin-bottom:18px;padding:22px 24px}
+.timeline{display:flex}
+.t-step{flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;position:relative;color:#a8a29e;font-weight:700}
+.t-step::before{content:'';position:absolute;top:19px;right:50%;width:100%;height:3px;background:var(--line)}
+.t-step:first-child::before{display:none}
+.t-step.done::before{background:var(--primary)}
+.dot{position:relative;z-index:1;width:40px;height:40px;border-radius:50%;background:#f5f0eb;display:grid;place-items:center;border:3px solid #fff;box-shadow:0 0 0 1px var(--line)}
+.t-step.done{color:var(--ink)}
+.t-step.done .dot{background:var(--primary);color:#fff;box-shadow:0 0 0 1px var(--primary)}
+.t-step.current .dot{box-shadow:0 0 0 6px var(--primary-100)}
+.t-step small{font-size:12px}
+.action-panel{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:18px;border-color:var(--primary-100);background:linear-gradient(90deg,#fff,var(--primary-50))}
+.action-panel>div:first-child{display:flex;flex-direction:column;gap:3px}
+.action-panel small{color:var(--muted)}
+.actions{display:flex;gap:8px}
+.reject{display:flex;gap:8px;flex-wrap:wrap;flex:1;justify-content:flex-end}
+.reject .input{max-width:320px}
+.grid{display:grid;grid-template-columns:1.5fr 1fr;gap:18px;align-items:start}
+.col{display:flex;flex-direction:column;gap:18px}
+.items{width:100%;border-collapse:collapse;font-size:14px}
+.items th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);padding:0 0 10px;border-bottom:1px solid var(--line)}
+.items td{padding:12px 0;border-bottom:1px dashed #f1ebe5;vertical-align:top}
+.items .c{text-align:center}.items .r{text-align:right}
+.items .price-old{margin-right:4px}
+.off{margin-left:8px;color:var(--primary-600);font-weight:800;font-size:12px}
+.totals{margin-left:auto;max-width:300px;padding-top:12px}
+.line{display:flex;justify-content:space-between;padding:5px 0;color:#57534e;font-size:14px}
+.line.ok{color:var(--ok);font-weight:700}
+.line.grand{border-top:1px solid var(--line);margin-top:8px;padding-top:12px;color:var(--ink);font-size:17px}
+.line.grand b{font-size:24px}
+.info-list{display:flex;flex-direction:column;gap:14px;margin-bottom:14px}
+.info-list>div{display:flex;gap:12px;align-items:flex-start}
+.info-list>div>app-icon{width:36px;height:36px;border-radius:10px;background:#f8f4f0;color:#57534e;display:grid;place-items:center;flex-shrink:0}
+.info-list>div>div{display:flex;flex-direction:column;gap:2px;min-width:0}
+.info-list small{color:var(--muted);font-size:12px;font-weight:600}
+.info-list span{color:var(--muted);font-size:13px}
+.info-list a{font-weight:700;color:var(--primary-600)}
+.map-link{display:inline-flex;align-items:center;gap:6px;margin-top:10px;color:var(--primary-600);font-weight:700;font-size:13px}
+.pay-head{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.pay-head img{height:40px;width:80px;object-fit:contain;border:1px solid var(--line);border-radius:10px;background:#fff}
+.pay-head div{display:flex;flex-direction:column}
+.pay-head small{color:var(--muted)}
+.cash{width:44px;height:44px;border-radius:12px;background:var(--ok-50);color:var(--ok);display:grid;place-items:center}
+.kv{display:flex;justify-content:space-between;padding:9px 0;border-top:1px dashed #f1ebe5;font-size:14px}
+.kv span{color:var(--muted)}
+.kv.ok b{color:var(--ok)}
+app-cuenta-pago{display:block;margin-top:12px}
+.invoice-cta{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.invoice-cta>app-icon{width:52px;height:52px;border-radius:14px;background:var(--primary-50);color:var(--primary);display:grid;place-items:center}
+.invoice-cta>div{flex:1;display:flex;flex-direction:column;min-width:160px}
+.invoice-cta small{color:var(--muted)}
+@media (max-width:900px){.grid{grid-template-columns:1fr}.t-step small{font-size:10px}.dot{width:32px;height:32px}.t-step::before{top:15px}}

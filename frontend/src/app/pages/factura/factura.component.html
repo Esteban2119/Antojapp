@@ -1,0 +1,91 @@
+<div class="wrap" [class.container]="!auth.esLocal()">
+ <div class="toolbar no-print">
+  <a class="back" [routerLink]="pedido ? [base, pedido.id] : [base]"><app-icon name="arrowLeft" [size]="16" />Volver al pedido</a>
+  @if (pedido) {
+   <div class="tb-actions">
+    <button class="btn btn-ghost" (click)="imprimir()"><app-icon name="printer" [size]="16" />Imprimir</button>
+    <button class="btn btn-primary" (click)="descargarPdf()" [disabled]="descargando"><app-icon name="file" [size]="16" />{{ descargando ? 'Generando PDF…' : 'Descargar PDF' }}</button>
+   </div>
+  }
+ </div>
+
+ @if (cargando) {
+  <div class="skeleton" style="height:700px"></div>
+ } @else if (error || !pedido) {
+  <div class="empty"><span class="empty-icon"><app-icon name="file" [size]="28" /></span><h3>Factura no disponible</h3><p>{{error}}</p><a class="btn btn-primary" [routerLink]="base">Ver pedidos</a></div>
+ } @else {
+  @let p = pedido;
+  @let t = totales(p);
+  <article class="invoice" #factura>
+   <header class="inv-head">
+    <div class="issuer">
+     <app-media class="logo" [src]="restaurante?.imagen || ''" [alt]="p.restauranteNombre" [texto]="iniciales(p.restauranteNombre)" [fondo]="fondo(restaurante?.categoria || '')" />
+     <div>
+      <h2>{{restaurante?.titularCuenta || p.restauranteNombre}}</h2>
+      <p>Nombre comercial: {{p.restauranteNombre}}</p>
+      <p>RUC: <b>{{restaurante?.ruc || '—'}}</b></p>
+      <p>Dirección matriz: {{restaurante?.direccion || 'Ecuador'}}</p>
+      <p>Obligado a llevar contabilidad: SÍ</p>
+     </div>
+    </div>
+    <div class="doc">
+     <span class="doc-type">FACTURA</span>
+     <div class="doc-row"><small>N.º</small><b>{{numeroFactura(p)}}</b></div>
+     <div class="doc-row"><small>Fecha de emisión</small><b>{{p.fecha | date:'dd/MM/yyyy'}}</b></div>
+     <div class="doc-row"><small>Pedido</small><b>#{{p.id}}</b></div>
+     <div class="doc-row"><small>Ambiente</small><b>Pruebas</b></div>
+    </div>
+   </header>
+
+   <section class="buyer">
+    <div><small>Razón social / Nombres</small><b>{{p.razonSocial || 'CONSUMIDOR FINAL'}}</b></div>
+    <div><small>Identificación</small><b>{{p.identificacion || '9999999999999'}}</b></div>
+    <div><small>Teléfono</small><b>{{p.telefono}}</b></div>
+    <div><small>Correo</small><b>{{p.email}}</b></div>
+    <div class="wide"><small>Dirección</small><b>{{p.direccion}}</b></div>
+   </section>
+
+   <table class="lines">
+    <thead><tr><th>Cant.</th><th>Descripción</th><th class="r">P. unitario</th><th class="r">Descuento</th><th class="r">Total sin IVA</th></tr></thead>
+    <tbody>
+     @for (d of detalle(p); track $index) {
+      <tr>
+       <td>{{d.cantidad}}</td>
+       <td>{{d.nombre}}</td>
+       <td class="r">{{sinIva(d.precioOriginal ?? d.precio) | currency:'USD':'symbol-narrow'}}</td>
+       <td class="r">{{ d.descuento ? (sinIva(((d.precioOriginal ?? d.precio) - d.precio) * d.cantidad) | currency:'USD':'symbol-narrow') : '—' }}</td>
+       <td class="r">{{sinIva(d.precio * d.cantidad) | currency:'USD':'symbol-narrow'}}</td>
+      </tr>
+     }
+    </tbody>
+   </table>
+
+   <div class="bottom">
+    <div class="extra">
+     <h4>Forma de pago</h4>
+     @if (p.metodoPago === 'TRANSFERENCIA' && p.cuentaPago) {
+      <div class="pay"><img [src]="cuentas[p.cuentaPago].logo" alt=""><div><b>Transferencia · {{cuentas[p.cuentaPago].nombre}}</b><small>Comprobante: {{p.comprobante}}</small></div></div>
+      <p class="code">Código SRI: 20 – Otros con utilización del sistema financiero</p>
+     } @else {
+      <div class="pay"><span class="cash"><app-icon name="cash" [size]="20" /></span><div><b>Efectivo</b><small>Pago contra entrega</small></div></div>
+      <p class="code">Código SRI: 01 – Sin utilización del sistema financiero</p>
+     }
+     <h4>Información adicional</h4>
+     <p class="code">Entrega a domicilio sin costo. Precios incluyen IVA.</p>
+    </div>
+    <div class="sums">
+     <div><span>Subtotal 15 %</span><span>{{t.base | currency:'USD':'symbol-narrow'}}</span></div>
+     <div><span>Subtotal 0 %</span><span>{{0 | currency:'USD':'symbol-narrow'}}</span></div>
+     <div><span>Total descuento</span><span>{{sinIva(t.descuentos) | currency:'USD':'symbol-narrow'}}</span></div>
+     <div><span>IVA 15 %</span><span>{{t.iva | currency:'USD':'symbol-narrow'}}</span></div>
+     <div class="total"><span>VALOR TOTAL</span><b>{{t.total | currency:'USD':'symbol-narrow'}}</b></div>
+    </div>
+   </div>
+
+   <footer class="inv-foot">
+    <span>Generado por AntojApp · {{p.fecha | date:'dd/MM/yyyy HH:mm'}}</span>
+    <span>Documento de prueba sin validez tributaria (proyecto académico).</span>
+   </footer>
+  </article>
+ }
+</div>

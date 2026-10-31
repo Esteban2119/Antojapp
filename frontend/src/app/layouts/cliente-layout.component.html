@@ -1,0 +1,40 @@
+<header class="topbar no-print">
+ <div class="container nav">
+  <a class="brand" routerLink="/cliente/explorar"><span class="brand-icon"><app-icon name="utensils" [size]="18" [stroke]="2.2" /></span>antoj<span>app</span></a>
+  <nav [class.open]="menuAbierto" (click)="menuAbierto=false">
+   <a routerLink="/cliente/explorar" routerLinkActive="active"><app-icon name="search" [size]="16" />Explorar</a>
+   <a routerLink="/cliente/pedidos" routerLinkActive="active"><app-icon name="package" [size]="16" />Mis pedidos</a>
+  </nav>
+  <div class="nav-actions">
+   <a class="cart-button" routerLink="/cliente/carrito">
+    <app-icon name="bag" [size]="18" /><span class="cart-label">Carrito</span>
+    @if (carrito.cantidad()) { <span class="cart-count">{{carrito.cantidad()}}</span> }
+   </a>
+   <div class="account">
+    <button class="avatar" (click)="cuentaAbierta=!cuentaAbierta" aria-label="Mi cuenta">{{iniciales(auth.sesion()?.nombre || '')}}</button>
+    @if (cuentaAbierta) {
+     <div class="backdrop" (click)="cuentaAbierta=false"></div>
+     <div class="dropdown">
+      <div class="who"><b>{{auth.sesion()?.nombre}}</b><small>{{auth.sesion()?.email}}</small></div>
+      <a routerLink="/cliente/pedidos" (click)="cuentaAbierta=false"><app-icon name="package" [size]="16" />Mis pedidos</a>
+      <button (click)="salir()"><app-icon name="logout" [size]="16" />Cerrar sesión</button>
+     </div>
+    }
+   </div>
+   <button class="menu-toggle" (click)="menuAbierto=!menuAbierto" aria-label="Menú"><app-icon [name]="menuAbierto ? 'x' : 'menu'" /></button>
+  </div>
+ </div>
+</header>
+
+<main><router-outlet /></main>
+
+<footer class="no-print">
+ <div class="container foot">
+  <div>
+   <b class="brand small"><span class="brand-icon"><app-icon name="utensils" [size]="16" [stroke]="2.2" /></span>antoj<span>app</span></b>
+   <p>Tu comida favorita, más cerca de ti.</p>
+  </div>
+  <div class="foot-links"><a routerLink="/cliente/explorar">Explorar</a><a routerLink="/cliente/pedidos">Mis pedidos</a><a routerLink="/cliente/carrito">Carrito</a></div>
+  <span class="foot-copy">Proyecto académico de aplicaciones distribuidas · Ecuador</span>
+ </div>
+</footer>

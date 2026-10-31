@@ -9,6 +9,10 @@ import java.time.LocalDateTime;
  public String email; public String telefono; public String referencia;
  public Double latitud; public Double longitud;
  public Long restauranteId; public String restauranteNombre; public String motivoRechazo;
+ // Pago: EFECTIVO (pagaCon para calcular el vuelto) o TRANSFERENCIA (cuentaPago PICHINCHA/DEUNA + comprobante)
+ public String metodoPago; public BigDecimal pagaCon; public String cuentaPago; public String comprobante;
+ // Facturacion: cedula/RUC del cliente; vacio = consumidor final
+ public String identificacion; public String razonSocial;
  public BigDecimal total; public LocalDateTime fecha=LocalDateTime.now();
  @Column(length=4000) public String detalle; // JSON de productos: prototipo academico
  public Pedido(){}

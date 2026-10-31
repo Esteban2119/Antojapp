@@ -90,3 +90,11 @@ h1,h2,h3{letter-spacing:-.03em;margin:0}
 .leaflet-container{font-family:inherit}
 
 @media (max-width:640px){.row-2{grid-template-columns:1fr}.panel{padding:18px}.container{padding:0 16px}}
+
+/* Impresion (factura): oculta la interfaz y deja solo el documento */
+@media print{
+ .no-print{display:none!important}
+ body{background:#fff}
+ main,.content{margin:0!important;padding:0!important}
+ @page{margin:14mm}
+}

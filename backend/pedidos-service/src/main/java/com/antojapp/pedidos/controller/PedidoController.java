@@ -49,6 +49,15 @@ public class PedidoController {
   if(p.direccion==null||p.direccion.isBlank())return "La dirección es obligatoria";
   if(p.restauranteId==null)return "El restaurante es obligatorio";
   if(p.total==null||p.total.compareTo(BigDecimal.ZERO)<=0)return "Total no válido";
+  if("EFECTIVO".equals(p.metodoPago)){
+   if(p.pagaCon!=null&&p.pagaCon.compareTo(p.total)<0)return "El monto en efectivo no puede ser menor al total";
+   p.cuentaPago=null;p.comprobante=null;
+  }else if("TRANSFERENCIA".equals(p.metodoPago)){
+   if(!List.of("PICHINCHA","DEUNA").contains(p.cuentaPago))return "Selecciona Banco Pichincha o Deuna";
+   if(p.comprobante==null||p.comprobante.isBlank())return "Ingresa el número de comprobante de la transferencia";
+   p.pagaCon=null;
+  }else return "Selecciona un método de pago";
+  if(p.identificacion!=null&&!p.identificacion.isBlank()&&!p.identificacion.trim().matches("\\d{10}|\\d{13}"))return "La cédula debe tener 10 dígitos o el RUC 13";
   return null;
  }
 }

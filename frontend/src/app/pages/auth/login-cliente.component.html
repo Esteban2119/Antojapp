@@ -1,0 +1,43 @@
+<div class="auth">
+ <aside class="auth-visual" style="background-image:url('/img/productos/llapingachos.png')">
+  <div class="overlay">
+   <a class="brand light" routerLink="/"><span class="brand-icon"><app-icon name="utensils" [size]="18" [stroke]="2.2" /></span>antoj<span>app</span></a>
+   <div class="visual-copy">
+    <h2>Tus platos favoritos, a un clic.</h2>
+    <ul>
+     <li><app-icon name="check" [size]="16" />Restaurantes y ofertas cerca de ti</li>
+     <li><app-icon name="check" [size]="16" />Paga en efectivo o por transferencia</li>
+     <li><app-icon name="check" [size]="16" />Sigue tu pedido y descarga tu factura</li>
+    </ul>
+   </div>
+  </div>
+ </aside>
+ <section class="auth-panel">
+  <a class="back" routerLink="/"><app-icon name="arrowLeft" [size]="16" />Volver al inicio</a>
+  <div class="auth-box">
+   <span class="eyebrow">Clientes</span>
+   <h1>{{ modo==='ingresar' ? 'Bienvenido de nuevo' : 'Crea tu cuenta' }}</h1>
+   <p class="sub">{{ modo==='ingresar' ? 'Ingresa para hacer y consultar tus pedidos.' : 'Regístrate en menos de un minuto.' }}</p>
+   <div class="segmented">
+    <button type="button" [class.active]="modo==='ingresar'" (click)="cambiar('ingresar')">Ingresar</button>
+    <button type="button" [class.active]="modo==='registro'" (click)="cambiar('registro')">Crear cuenta</button>
+   </div>
+   <form (ngSubmit)="enviar()">
+    @if (modo==='registro') {
+     <label class="field">Nombre completo<div class="input-icon"><app-icon name="user" [size]="17" /><input name="nombre" [(ngModel)]="form.nombre" placeholder="Ej. Esteban Sandoval" autocomplete="name"></div></label>
+    }
+    <label class="field">Correo electrónico<div class="input-icon"><app-icon name="mail" [size]="17" /><input name="email" type="email" [(ngModel)]="form.email" placeholder="tucorreo@ejemplo.com" autocomplete="email"></div></label>
+    @if (modo==='registro') {
+     <label class="field">Teléfono<div class="input-icon"><app-icon name="phone" [size]="17" /><input name="telefono" type="tel" [(ngModel)]="form.telefono" placeholder="0991234567" autocomplete="tel"></div></label>
+    }
+    <label class="field">Contraseña<div class="input-icon"><app-icon name="lock" [size]="17" /><input name="password" [type]="verClave ? 'text' : 'password'" [(ngModel)]="form.password" placeholder="Mínimo 6 caracteres" [autocomplete]="modo==='ingresar' ? 'current-password' : 'new-password'"><button type="button" class="eye" (click)="verClave=!verClave" aria-label="Mostrar contraseña"><app-icon name="eye" [size]="17" /></button></div></label>
+    @if (modo==='registro') {
+     <label class="field">Confirmar contraseña<div class="input-icon"><app-icon name="lock" [size]="17" /><input name="confirmar" [type]="verClave ? 'text' : 'password'" [(ngModel)]="form.confirmar" placeholder="Repite tu contraseña" autocomplete="new-password"></div></label>
+    }
+    @if (error) { <div class="alert error"><app-icon name="alert" />{{error}}</div> }
+    <button class="btn btn-primary btn-lg btn-block" type="submit" [disabled]="enviando">{{ enviando ? 'Procesando…' : modo==='ingresar' ? 'Ingresar' : 'Crear cuenta' }}</button>
+   </form>
+   <div class="switch-role">¿Tienes un restaurante? <a routerLink="/local/login">Accede al panel de locales</a></div>
+  </div>
+ </section>
+</div>

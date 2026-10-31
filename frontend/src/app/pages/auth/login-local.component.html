@@ -1,0 +1,37 @@
+<div class="auth">
+ <aside class="auth-visual dark" style="background-image:url('/img/productos/hornado.png')">
+  <div class="overlay">
+   <a class="brand light" routerLink="/"><span class="brand-icon"><app-icon name="utensils" [size]="18" [stroke]="2.2" /></span>antoj<span>app</span></a>
+   <div class="visual-copy">
+    <h2>El panel para hacer crecer tu restaurante.</h2>
+    <ul>
+     <li><app-icon name="bell" [size]="16" />Recibe y confirma pedidos al instante</li>
+     <li><app-icon name="tag" [size]="16" />Administra tu menú, precios y descuentos</li>
+     <li><app-icon name="bank" [size]="16" />Cobra por Banco Pichincha o Deuna</li>
+    </ul>
+   </div>
+  </div>
+ </aside>
+ <section class="auth-panel">
+  <a class="back" routerLink="/"><app-icon name="arrowLeft" [size]="16" />Volver al inicio</a>
+  <div class="auth-box">
+   <span class="eyebrow">Restaurantes</span>
+   <h1>Acceso para locales</h1>
+   <p class="sub">Ingresa con la cuenta asignada a tu restaurante.</p>
+   <form (ngSubmit)="enviar()">
+    <label class="field">Correo del local<div class="input-icon"><app-icon name="store" [size]="17" /><input name="email" type="email" [(ngModel)]="email" placeholder="milocal@antojapp.com" autocomplete="username"></div></label>
+    <label class="field">Contraseña<div class="input-icon"><app-icon name="lock" [size]="17" /><input name="password" [type]="verClave ? 'text' : 'password'" [(ngModel)]="password" placeholder="Contraseña" autocomplete="current-password"><button type="button" class="eye" (click)="verClave=!verClave" aria-label="Mostrar contraseña"><app-icon name="eye" [size]="17" /></button></div></label>
+    @if (error) { <div class="alert error"><app-icon name="alert" />{{error}}</div> }
+    <button class="btn btn-dark btn-lg btn-block" type="submit" [disabled]="enviando">{{ enviando ? 'Ingresando…' : 'Ingresar al panel' }}</button>
+   </form>
+   @if (restaurantes.length) {
+    <div class="demo">
+     <b><app-icon name="info" [size]="15" />Cuentas de demostración</b>
+     <small>Contraseña: <code>local123</code>. Haz clic para completar los datos.</small>
+     <div class="demo-list">@for (r of restaurantes; track r.id) { <button type="button" (click)="usar(r)" [title]="correoDe(r)">{{r.nombre}}</button> }</div>
+    </div>
+   }
+   <div class="switch-role">¿Quieres pedir comida? <a routerLink="/cliente/login">Ingresa como cliente</a></div>
+  </div>
+ </section>
+</div>

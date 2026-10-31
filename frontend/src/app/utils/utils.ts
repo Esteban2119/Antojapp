@@ -22,4 +22,20 @@ export const ESTADOS:Record<EstadoPedido,{label:string;icono:IconName}>={
  PREPARANDO:{label:'Preparando',icono:'flame'},EN_CAMINO:{label:'En camino',icono:'truck'},ENTREGADO:{label:'Entregado',icono:'package'}};
 
 export function detalle(p:Pedido):DetallePedido[]{try{return JSON.parse(p.detalle||'[]');}catch{return [];}}
+
+// Los precios del menu incluyen IVA (15 % en Ecuador); la factura desglosa la base imponible
+export const IVA=0.15;
+export const redondear=(n:number)=>Math.round(n*100)/100;
+export function totales(p:Pedido){
+ const items=detalle(p),total=Number(p.total),base=redondear(total/(1+IVA));
+ const descuentos=redondear(items.reduce((s,d)=>s+((d.precioOriginal??d.precio)-d.precio)*d.cantidad,0));
+ return {total,base,iva:redondear(total-base),descuentos,articulos:items.reduce((s,d)=>s+d.cantidad,0)};
+}
+export const numeroFactura=(p:Pedido)=>`001-001-${String(p.id).padStart(9,'0')}`;
+export const facturaDisponible=(p:Pedido)=>!['RECIBIDO','RECHAZADO'].includes(p.estado);
+export const CUENTAS={PICHINCHA:{nombre:'Banco Pichincha',logo:'/img/pagos/banco-pichincha.png'},DEUNA:{nombre:'Deuna',logo:'/img/pagos/deuna.png'}} as const;
+export function metodoTexto(p:Pedido){
+ if(p.metodoPago==='TRANSFERENCIA')return `Transferencia · ${p.cuentaPago?CUENTAS[p.cuentaPago].nombre:''}`;
+ return p.metodoPago==='EFECTIVO'?'Efectivo contra entrega':'No especificado';
+}
 export const mapaUrl=(lat:number,lng:number)=>`https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=18/${lat}/${lng}`;

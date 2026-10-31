@@ -1,0 +1,36 @@
+<div class="welcome">
+ <header class="container w-top">
+  <span class="brand"><span class="brand-icon"><app-icon name="utensils" [size]="18" [stroke]="2.2" /></span>antoj<span>app</span></span>
+  <div class="w-links"><a routerLink="/cliente/login">Ingresar</a><a class="btn btn-dark btn-sm" routerLink="/local/login"><app-icon name="store" [size]="15" />Acceso restaurantes</a></div>
+ </header>
+
+ <section class="container w-hero">
+  <div class="w-copy">
+   <span class="pill"><app-icon name="star" [size]="14" />Delivery de comida ecuatoriana</span>
+   <h1>Pide lo que se te antoja.<br><em>Vende más con tu local.</em></h1>
+   <p>Una sola plataforma para clientes que quieren comer rico y para restaurantes que quieren recibir pedidos, cobrar por transferencia y emitir facturas.</p>
+   <div class="roles">
+    <a class="role" routerLink="/cliente/login">
+     <span class="role-icon"><app-icon name="bag" [size]="24" /></span>
+     <div><h3>Soy cliente</h3><p>Explora restaurantes, paga en efectivo o transferencia y sigue tu pedido.</p></div>
+     <app-icon class="go" name="arrowRight" [size]="20" />
+    </a>
+    <a class="role dark" routerLink="/local/login">
+     <span class="role-icon"><app-icon name="store" [size]="24" /></span>
+     <div><h3>Soy restaurante</h3><p>Confirma pedidos, administra tu menú, tus descuentos y tus datos de pago.</p></div>
+     <app-icon class="go" name="arrowRight" [size]="20" />
+    </a>
+   </div>
+  </div>
+  <div class="w-gallery">
+   @for (src of platos; track src; let i = $index) { <div class="g-item" [class]="'g-item g' + i"><img [src]="src" alt=""></div> }
+  </div>
+ </section>
+
+ <section class="container w-features">
+  <div><app-icon name="map" [size]="22" /><b>Entrega con mapa</b><span>Marca el punto exacto de entrega.</span></div>
+  <div><app-icon name="bank" [size]="22" /><b>Pago flexible</b><span>Efectivo, Banco Pichincha o Deuna.</span></div>
+  <div><app-icon name="file" [size]="22" /><b>Factura electrónica</b><span>Descárgala cuando tu pedido es confirmado.</span></div>
+  <div><app-icon name="truck" [size]="22" /><b>Seguimiento</b><span>Conoce el estado en tiempo real.</span></div>
+ </section>
+</div>

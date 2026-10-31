@@ -7,6 +7,8 @@ export type ProductoForm=Omit<Producto,'id'|'restaurante'>&{restaurante:{id:numb
  // El puerto 8081 corresponde al microservicio de restaurantes
  private api='http://localhost:8081/api';
  restaurantes(){return this.http.get<Restaurante[]>(`${this.api}/restaurantes`);}
+ restaurante(id:number){return this.http.get<Restaurante>(`${this.api}/restaurantes/${id}`);}
+ actualizarRestaurante(id:number,r:Restaurante){return this.http.put<Restaurante>(`${this.api}/restaurantes/${id}`,r);}
  productos(){return this.http.get<Producto[]>(`${this.api}/productos`);}
  productosDe(restauranteId:number){return this.http.get<Producto[]>(`${this.api}/restaurantes/${restauranteId}/productos`);}
  crearProducto(p:ProductoForm){return this.http.post<Producto>(`${this.api}/productos`,p);}

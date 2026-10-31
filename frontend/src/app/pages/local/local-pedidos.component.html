@@ -1,0 +1,71 @@
+<div class="page-head">
+ <div><span class="eyebrow">Operación</span><h1>Pedidos</h1><p>Confirma los pedidos nuevos y actualiza su estado.</p></div>
+ <button class="btn btn-ghost" (click)="cargar(true)"><app-icon name="refresh" [size]="16" />Actualizar</button>
+</div>
+
+<div class="kpis">
+ <div class="kpi hot"><span><app-icon name="bell" [size]="22" /></span><div><b>{{nuevos.length}}</b><small>Por confirmar</small></div></div>
+ <div class="kpi"><span><app-icon name="flame" [size]="22" /></span><div><b>{{enProceso.length}}</b><small>En proceso</small></div></div>
+ <div class="kpi"><span><app-icon name="checkCircle" [size]="22" /></span><div><b>{{finalizados.length}}</b><small>Finalizados</small></div></div>
+ <div class="kpi"><span><app-icon name="chart" [size]="22" /></span><div><b>{{ingresos | currency:'USD':'symbol-narrow'}}</b><small>Ventas</small></div></div>
+</div>
+
+@if (error) { <div class="alert error"><app-icon name="alert" />{{error}}</div> }
+
+<div class="toolbar">
+ <div class="chips">
+  <button class="chip" [class.selected]="filtro==='nuevos'" (click)="filtro='nuevos'">Nuevos @if (nuevos.length) {<span class="count">{{nuevos.length}}</span>}</button>
+  <button class="chip" [class.selected]="filtro==='proceso'" (click)="filtro='proceso'">En proceso ({{enProceso.length}})</button>
+  <button class="chip" [class.selected]="filtro==='finalizados'" (click)="filtro='finalizados'">Finalizados ({{finalizados.length}})</button>
+ </div>
+</div>
+
+@if (cargando) {
+ <div class="orders">@for (i of [1,2,3]; track i) { <div class="skeleton" style="height:280px"></div> }</div>
+} @else if (!lista.length) {
+ <div class="empty"><span class="empty-icon"><app-icon name="inbox" [size]="28" /></span><h3>{{ filtro==='nuevos' ? 'No hay pedidos nuevos' : 'Nada por aquí' }}</h3><p>{{ filtro==='nuevos' ? 'Te avisaremos cuando llegue uno. La lista se actualiza automáticamente.' : 'Los pedidos aparecerán aquí según su estado.' }}</p></div>
+} @else {
+ <div class="orders">
+  @for (p of lista; track p.id) {
+   <article class="order" [class.is-new]="p.estado==='RECIBIDO'">
+    <div class="order-top">
+     <div><b>#{{p.id}}</b><small>{{p.fecha | date:"d MMM, HH:mm"}}</small></div>
+     <span [class]="'badge estado-' + p.estado"><app-icon [name]="estados[p.estado].icono" [size]="13" />{{estados[p.estado].label}}</span>
+    </div>
+    <div class="client">
+     <b><app-icon name="user" [size]="15" />{{p.cliente}}</b>
+     <a [href]="'tel:' + p.telefono"><app-icon name="phone" [size]="15" />{{p.telefono}}</a>
+     <span><app-icon name="pin" [size]="15" /><span>{{p.direccion}}</span></span>
+    </div>
+    <ul class="items">
+     @for (d of detalle(p); track $index) { <li><span><b>{{d.cantidad}}×</b> {{d.nombre}}</span><span>{{d.cantidad * d.precio | currency:'USD':'symbol-narrow'}}</span></li> }
+    </ul>
+    <div class="pay-line">
+     @if (p.metodoPago==='TRANSFERENCIA' && p.cuentaPago) {
+      <img [src]="cuentas[p.cuentaPago].logo" alt=""><span>Transferencia · Comp. <b>{{p.comprobante}}</b></span>
+     } @else {
+      <app-icon name="cash" [size]="16" /><span>Efectivo@if (p.pagaCon) { · paga con <b>{{p.pagaCon | currency:'USD':'symbol-narrow'}}</b>}</span>
+     }
+    </div>
+    <div class="order-total"><span>Total</span><strong>{{p.total | currency:'USD':'symbol-narrow'}}</strong></div>
+
+    @if (p.estado==='RECIBIDO') {
+     @if (rechazandoId===p.id) {
+      <div class="reject-box">
+       <input class="input" [(ngModel)]="motivo" placeholder="Motivo (opcional): ej. producto agotado">
+       <div class="actions"><button class="btn btn-ghost btn-sm" (click)="rechazandoId=null">Cancelar</button><button class="btn btn-danger btn-sm" (click)="cambiarEstado(p,'RECHAZADO',motivo.trim())" [disabled]="procesando.has(p.id)">Confirmar rechazo</button></div>
+      </div>
+     } @else {
+      <div class="actions">
+       <button class="btn btn-danger" (click)="rechazandoId=p.id;motivo=''" [disabled]="procesando.has(p.id)"><app-icon name="x" [size]="16" />Rechazar</button>
+       <button class="btn btn-ok grow" (click)="cambiarEstado(p,'CONFIRMADO')" [disabled]="procesando.has(p.id)"><app-icon name="check" [size]="16" />Confirmar</button>
+      </div>
+     }
+    } @else if (siguienteDe[p.estado]) {
+     <div class="actions"><button class="btn btn-dark grow" (click)="cambiarEstado(p,siguienteDe[p.estado]!.estado)" [disabled]="procesando.has(p.id)"><app-icon [name]="siguienteDe[p.estado]!.icono" [size]="16" />{{siguienteDe[p.estado]!.label}}</button></div>
+    }
+    <a class="detail-link" [routerLink]="['/local/pedidos', p.id]">Ver detalle completo<app-icon name="chevronRight" [size]="15" /></a>
+   </article>
+  }
+ </div>
+}
