@@ -3,6 +3,7 @@
   <a class="brand" routerLink="/"><span class="brand-icon"><app-icon name="utensils" [size]="18" [stroke]="2.2" /></span>antoj<span>app</span></a>
   <nav [class.open]="menuAbierto" (click)="menuAbierto=false">
    <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}"><app-icon name="search" [size]="16" />Explorar</a>
+   <a routerLink="/restaurantes" routerLinkActive="active"><app-icon name="store" [size]="16" />Restaurantes</a>
    <a routerLink="/mis-pedidos" routerLinkActive="active"><app-icon name="package" [size]="16" />Mis pedidos</a>
    <a routerLink="/restaurante" routerLinkActive="active"><app-icon name="store" [size]="16" />Soy restaurante</a>
   </nav>

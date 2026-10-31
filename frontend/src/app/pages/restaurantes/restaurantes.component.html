@@ -1,0 +1,91 @@
+<div class="container">
+ @if (!seleccionado) {
+  <div class="page-head">
+   <div>
+    <span class="eyebrow">Restaurantes</span>
+    <h1>Elige dónde pedir</h1>
+    <p>{{filtrados.length}} restaurantes disponibles para entrega a domicilio.</p>
+   </div>
+   <label class="search"><app-icon name="search" [size]="16" /><input [(ngModel)]="busqueda" placeholder="Buscar restaurante..."></label>
+  </div>
+
+  <div class="chips">
+   @for (c of categorias; track c) { <button class="chip" [class.selected]="categoria===c" (click)="categoria=c">{{c}}</button> }
+  </div>
+
+  @if (error) { <div class="alert error"><app-icon name="alert" />{{error}}</div> }
+
+  @if (cargando) {
+   <div class="grid">@for (i of [1,2,3]; track i) { <div class="skeleton card-skeleton"></div> }</div>
+  }
+
+  @if (!cargando && filtrados.length) {
+   <div class="grid">
+    @for (r of filtrados; track r.id) {
+     <article class="card">
+      <app-media class="cover" [src]="r.imagen" [alt]="r.nombre" [texto]="iniciales(r.nombre)" [fondo]="fondo(r.categoria)" />
+      <div class="body">
+       <span class="badge cat">{{r.categoria}}</span>
+       <h3>{{r.nombre}}</h3>
+       <p>{{r.descripcion}}</p>
+       <button class="btn btn-primary btn-sm" (click)="verMenu(r)">Ver menú <app-icon name="arrowRight" [size]="16" /></button>
+      </div>
+     </article>
+    }
+   </div>
+  }
+
+  @if (!cargando && !filtrados.length) {
+   <div class="empty"><span class="empty-icon"><app-icon name="store" [size]="28" /></span><h3>No encontramos restaurantes</h3><p>Prueba con otra búsqueda o cambia la categoría.</p></div>
+  }
+ } @else {
+  <button class="back" (click)="volver()"><app-icon name="arrowLeft" [size]="16" />Todos los restaurantes</button>
+
+  <div class="rest-head">
+   <app-media class="rest-logo" [src]="seleccionado.imagen" [alt]="seleccionado.nombre" [texto]="iniciales(seleccionado.nombre)" [fondo]="fondo(seleccionado.categoria)" />
+   <div>
+    <span class="eyebrow">{{seleccionado.categoria}}</span>
+    <h1>{{seleccionado.nombre}}</h1>
+    <p>{{seleccionado.descripcion}}</p>
+   </div>
+  </div>
+
+  @if (error) { <div class="alert error"><app-icon name="alert" />{{error}}</div> }
+
+  @if (cargandoMenu) {
+   <div class="products">@for (i of [1,2,3]; track i) { <div class="skeleton product-skeleton"></div> }</div>
+  }
+
+  @if (!cargandoMenu && menu.length) {
+   <div class="products">
+    @for (p of menu; track p.id) {
+     <article class="product">
+      <div class="product-visual">
+       <app-media [src]="imagenProducto(p)" [alt]="p.nombre" [fondo]="fondo(p.restaurante.categoria)" />
+       @if (p.descuento > 0) { <span class="discount corner">-{{p.descuento}}%</span> }
+      </div>
+      <div class="product-body">
+       <h3>{{p.nombre}}</h3>
+       <p>{{p.descripcion}}</p>
+       <div class="product-bottom">
+        <div class="price">
+         @if (p.descuento > 0) { <span class="price-old">{{p.precio | currency:'USD':'symbol-narrow'}}</span> }
+         <strong>{{precioFinal(p) | currency:'USD':'symbol-narrow'}}</strong>
+        </div>
+        @if (carrito.cantidadDe(p.id); as qty) {
+         <div class="stepper"><button (click)="carrito.quitar(p)" aria-label="Quitar"><app-icon name="minus" [size]="16" /></button><span>{{qty}}</span><button (click)="carrito.agregar(p)" aria-label="Agregar"><app-icon name="plus" [size]="16" /></button></div>
+        } @else {
+         <button class="add" (click)="agregar(p)" aria-label="Agregar"><app-icon name="plus" [size]="20" [stroke]="2.4" /></button>
+        }
+       </div>
+      </div>
+     </article>
+    }
+   </div>
+  }
+
+  @if (!cargandoMenu && !error && !menu.length) {
+   <div class="empty"><span class="empty-icon"><app-icon name="utensils" [size]="28" /></span><h3>Sin platos por ahora</h3><p>Este restaurante todavía no publicó su menú.</p></div>
+  }
+ }
+</div>
