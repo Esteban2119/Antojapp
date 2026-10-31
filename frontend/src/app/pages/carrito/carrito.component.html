@@ -1,0 +1,65 @@
+<div class="container">
+ <a class="back" routerLink="/"><app-icon name="arrowLeft" [size]="16" />Seguir comprando</a>
+ <div class="page-head"><div><span class="eyebrow">Checkout</span><h1>Finalizar pedido</h1><p>Revisa tus productos, indica dónde los recibes y confirma.</p></div></div>
+
+ @if (!carrito.items().length) {
+  <div class="empty"><span class="empty-icon"><app-icon name="bag" [size]="28" /></span><h3>Tu carrito está vacío</h3><p>Explora el menú y agrega tus platos favoritos.</p><a class="btn btn-primary" routerLink="/">Explorar menú</a></div>
+ } @else {
+  <div class="checkout">
+   <div class="left">
+    <div class="panel">
+     <div class="panel-title"><span class="step">1</span><h3>Tus productos</h3><span class="muted">{{carrito.cantidad()}} artículos</span></div>
+     @for (g of carrito.porRestaurante(); track g.restaurante.id) {
+      <div class="group">
+       <div class="group-head"><span><app-icon name="store" [size]="16" />{{g.restaurante.nombre}}</span><b>{{g.total | currency:'USD':'symbol-narrow'}}</b></div>
+       @for (item of g.items; track item.producto.id) {
+        <div class="cart-item">
+         <app-media class="item-img" [src]="imagenProducto(item.producto)" [alt]="item.producto.nombre" [fondo]="fondo(item.producto.restaurante.categoria)" />
+         <div class="item-info">
+          <b>{{item.producto.nombre}}</b>
+          <small>
+           @if (item.producto.descuento > 0) { <span class="price-old">{{item.producto.precio | currency:'USD':'symbol-narrow'}}</span> <span class="off">-{{item.producto.descuento}}%</span> }
+           {{precioFinal(item.producto) | currency:'USD':'symbol-narrow'}} c/u
+          </small>
+         </div>
+         <div class="quantity"><button (click)="carrito.quitar(item.producto)" aria-label="Quitar"><app-icon name="minus" [size]="14" /></button><span>{{item.cantidad}}</span><button (click)="carrito.agregar(item.producto)" aria-label="Agregar"><app-icon name="plus" [size]="14" /></button></div>
+         <b class="line-total">{{item.cantidad * precioFinal(item.producto) | currency:'USD':'symbol-narrow'}}</b>
+         <button class="icon-btn remove" (click)="carrito.eliminar(item.producto.id)" aria-label="Eliminar"><app-icon name="trash" [size]="16" /></button>
+        </div>
+       }
+      </div>
+     }
+     @if (carrito.porRestaurante().length > 1) { <div class="alert info"><app-icon name="info" />Tu carrito tiene productos de {{carrito.porRestaurante().length}} restaurantes: se creará un pedido para cada uno.</div> }
+    </div>
+
+    <div class="panel">
+     <div class="panel-title"><span class="step">2</span><h3>Datos de contacto</h3></div>
+     <label class="field">Nombre completo<input [(ngModel)]="form.cliente" [class.invalid]="intentado && !form.cliente.trim()" placeholder="Ej. Esteban Sandoval" autocomplete="name"></label>
+     <div class="row-2">
+      <label class="field">Correo electrónico<input type="email" [(ngModel)]="form.email" [class.invalid]="intentado && !emailValido" placeholder="tucorreo@ejemplo.com" autocomplete="email"><small>Con este correo podrás consultar tus pedidos.</small></label>
+      <label class="field">Teléfono<input type="tel" [(ngModel)]="form.telefono" [class.invalid]="intentado && !telefonoValido" placeholder="Ej. 0991234567" autocomplete="tel"><small>El restaurante te contactará si es necesario.</small></label>
+     </div>
+    </div>
+
+    <div class="panel">
+     <div class="panel-title"><span class="step">3</span><h3>Dirección de entrega</h3>@if (ubicacion) {<span class="badge estado-ENTREGADO"><app-icon name="check" [size]="13" />Ubicación marcada</span>}</div>
+     <app-mapa-direccion (ubicacion)="onUbicacion($event)" />
+     <label class="field">Dirección<input [(ngModel)]="form.direccion" [class.invalid]="intentado && !form.direccion.trim()" placeholder="Se completa al marcar el mapa, puedes editarla"></label>
+     <label class="field">Referencia <small>(opcional)</small><input [(ngModel)]="form.referencia" placeholder="Ej. Casa blanca con portón negro, depto 3B"></label>
+    </div>
+   </div>
+
+   <aside class="panel summary">
+    <h3>Resumen del pedido</h3>
+    <div class="total-line"><span>Subtotal</span><span>{{carrito.subtotal() | currency:'USD':'symbol-narrow'}}</span></div>
+    @if (carrito.ahorro() > 0) { <div class="total-line savings"><span><app-icon name="tag" [size]="15" />Descuentos</span><span>−{{carrito.ahorro() | currency:'USD':'symbol-narrow'}}</span></div> }
+    <div class="total-line"><span>Envío</span><span class="free">Gratis</span></div>
+    <hr>
+    <div class="total-line grand"><span>Total</span><b>{{carrito.total() | currency:'USD':'symbol-narrow'}}</b></div>
+    @if (error) { <div class="alert error"><app-icon name="alert" />{{error}}</div> }
+    <button class="btn btn-primary btn-lg btn-block" (click)="confirmar()" [disabled]="enviando">{{ enviando ? 'Enviando pedido…' : 'Confirmar pedido' }}@if (!enviando) {<app-icon name="arrowRight" [size]="18" />}</button>
+    <small class="note"><app-icon name="lock" [size]="13" />Pago simulado: no se cobra dinero real.</small>
+   </aside>
+  </div>
+ }
+</div>

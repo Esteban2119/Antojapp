@@ -1,0 +1,7 @@
+<div class="tools">
+ <label class="search"><app-icon name="search" [size]="16" /><input [(ngModel)]="busqueda" (keydown.enter)="$event.preventDefault(); buscar()" placeholder="Busca tu calle, barrio o lugar..."></label>
+ <button type="button" class="btn btn-ghost btn-sm" (click)="buscar()" [disabled]="buscando">{{buscando ? 'Buscando…' : 'Buscar'}}</button>
+ <button type="button" class="btn btn-dark btn-sm" (click)="miUbicacion()" [disabled]="localizando"><app-icon name="locate" [size]="16" />{{localizando ? 'Localizando…' : 'Mi ubicación'}}</button>
+</div>
+<div class="map-wrap"><div #mapa class="map"></div></div>
+<small class="hint"><app-icon [name]="mensaje ? 'alert' : 'info'" [size]="13" />{{ mensaje || 'Haz clic en el mapa o arrastra el pin para ajustar el punto exacto de entrega.' }}</small>

@@ -1,1 +1,92 @@
-*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:#fffdf9;color:#22201d;font-family:'DM Sans',Arial,sans-serif}button,input{font:inherit}button{cursor:pointer}button:disabled{opacity:.5}
+:root{
+ --primary:#ff5a1f;--primary-600:#e9480f;--primary-50:#fff1ea;--primary-100:#ffe1d2;
+ --ink:#1c1917;--muted:#78716c;--line:#efe7df;--bg:#fffaf5;--card:#fff;
+ --ok:#16a34a;--ok-50:#e9f9ef;--danger:#dc2626;--danger-50:#fdecec;--warn:#d97706;--warn-50:#fff6e5;--info:#2563eb;--info-50:#eaf1ff;
+ --radius:20px;--shadow-sm:0 1px 2px rgba(28,25,23,.05);--shadow:0 10px 30px -12px rgba(28,25,23,.18);--shadow-lg:0 24px 50px -18px rgba(28,25,23,.35);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'Plus Jakarta Sans','DM Sans',system-ui,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+button:disabled{opacity:.55;cursor:not-allowed}
+a{color:inherit;text-decoration:none}
+h1,h2,h3{letter-spacing:-.03em;margin:0}
+.container{max-width:1200px;margin:auto;padding:0 24px}
+
+/* Marca */
+.brand{display:inline-flex;align-items:center;font-size:24px;font-weight:800;letter-spacing:-1.2px;color:var(--ink)}
+.brand span:not(.brand-icon){color:var(--primary)}
+.brand-icon{display:inline-grid;place-items:center;background:linear-gradient(135deg,var(--primary),#ff9a3d);color:#fff;border-radius:11px;width:34px;height:34px;margin-right:8px;box-shadow:0 6px 14px -6px var(--primary)}
+
+/* Botones */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid transparent;border-radius:14px;padding:12px 20px;font-weight:700;font-size:15px;transition:.18s;white-space:nowrap}
+.btn:not(:disabled):hover{transform:translateY(-1px)}
+.btn-primary{background:var(--primary);color:#fff;box-shadow:0 10px 22px -10px var(--primary)}
+.btn-primary:not(:disabled):hover{background:var(--primary-600)}
+.btn-dark{background:var(--ink);color:#fff}
+.btn-ghost{background:#fff;border-color:var(--line);color:var(--ink)}
+.btn-ghost:not(:disabled):hover{border-color:#d6cdc4}
+.btn-ok{background:var(--ok);color:#fff}
+.btn-danger{background:#fff;color:var(--danger);border-color:#f5c2c2}
+.btn-danger:not(:disabled):hover{background:var(--danger-50)}
+.btn-sm{padding:8px 13px;font-size:13px;border-radius:11px}
+.btn-lg{padding:16px 26px;font-size:16px}
+.btn-block{width:100%}
+.icon-btn{border:1px solid var(--line);background:#fff;border-radius:10px;width:36px;height:36px;display:inline-grid;place-items:center;transition:.15s}
+.icon-btn:hover{background:var(--primary-50);border-color:var(--primary-100)}
+
+/* Tarjetas y paneles */
+.panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow-sm)}
+.panel h3{font-size:18px;margin-bottom:16px}
+
+/* Formularios */
+.field{display:flex;flex-direction:column;gap:7px;margin-bottom:14px;font-size:13px;font-weight:700;color:#44403c}
+.field small{font-weight:500;color:var(--muted)}
+.input,.field input,.field select,.field textarea{width:100%;border:1.5px solid var(--line);background:#fff;border-radius:13px;padding:12px 14px;font-size:15px;font-weight:500;outline:none;transition:.15s}
+.field textarea{resize:vertical;min-height:80px}
+.input:focus,.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--primary);box-shadow:0 0 0 4px var(--primary-50)}
+.field input.invalid{border-color:var(--danger)}
+.row-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+/* Encabezados de seccion */
+.page-head{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap;margin:36px 0 24px}
+.page-head h1{font-size:clamp(28px,4vw,40px)}
+.page-head p{color:var(--muted);margin:8px 0 0}
+.eyebrow{display:inline-block;color:var(--primary);font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;margin-bottom:8px}
+.back{display:inline-flex;gap:6px;align-items:center;color:var(--muted);font-weight:700;font-size:14px;margin-top:28px;background:none;border:0;padding:0}
+.back:hover{color:var(--primary)}
+
+/* Chips, badges y alertas */
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{border:1.5px solid var(--line);background:#fff;border-radius:999px;padding:9px 16px;font-weight:700;font-size:14px;color:#57534e;transition:.15s;display:inline-flex;gap:6px;align-items:center}
+.chip:hover{border-color:#d6cdc4}
+.chip.selected{background:var(--ink);border-color:var(--ink);color:#fff}
+.chip .count{background:var(--primary);color:#fff;border-radius:999px;padding:1px 7px;font-size:11px}
+.badge{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:5px 11px;font-size:12px;font-weight:800;white-space:nowrap}
+.estado-RECIBIDO{background:var(--warn-50);color:var(--warn)}
+.estado-CONFIRMADO{background:var(--info-50);color:var(--info)}
+.estado-PREPARANDO{background:#f3ecff;color:#7c3aed}
+.estado-EN_CAMINO{background:var(--primary-50);color:var(--primary-600)}
+.estado-ENTREGADO{background:var(--ok-50);color:var(--ok)}
+.estado-RECHAZADO{background:var(--danger-50);color:var(--danger)}
+.alert{display:flex;align-items:center;gap:10px;border-radius:14px;padding:13px 16px;font-weight:600;font-size:14px;margin:14px 0}
+.alert.error{background:var(--danger-50);color:#991b1b;border:1px solid #f8caca}
+.alert.info{background:var(--info-50);color:#1e40af;border:1px solid #c9dafc}
+.empty{text-align:center;padding:56px 20px;color:var(--muted);background:#fff;border:1.5px dashed var(--line);border-radius:var(--radius)}
+.empty-icon{width:64px;height:64px;margin:0 auto 14px;border-radius:20px;background:var(--primary-50);color:var(--primary);display:grid;place-items:center}
+.empty h3{color:var(--ink);margin-bottom:6px}
+.price-old{color:#a8a29e;text-decoration:line-through;font-weight:600;font-size:13px}
+.discount{background:linear-gradient(135deg,#ff3d3d,var(--primary));color:#fff;border-radius:10px;padding:5px 9px;font-size:12px;font-weight:800;box-shadow:0 6px 14px -6px #ff3d3d}
+
+/* Skeleton de carga */
+.skeleton{background:linear-gradient(90deg,#f5efe9 25%,#fbf7f3 50%,#f5efe9 75%);background-size:200% 100%;animation:brillo 1.2s infinite;border-radius:var(--radius)}
+@keyframes brillo{to{background-position:-200% 0}}
+
+/* Pin del mapa (divIcon de Leaflet fuera del encapsulado de componentes) */
+.map-pin{background:none;border:0}
+.map-pin span{display:block;width:34px;height:34px;border-radius:50% 50% 50% 0;background:var(--primary);transform:rotate(-45deg);border:3px solid #fff;box-shadow:0 8px 18px -4px rgba(0,0,0,.45)}
+.map-pin span::after{content:'';position:absolute;inset:9px;background:#fff;border-radius:50%}
+.leaflet-container{font-family:inherit}
+
+@media (max-width:640px){.row-2{grid-template-columns:1fr}.panel{padding:18px}.container{padding:0 16px}}

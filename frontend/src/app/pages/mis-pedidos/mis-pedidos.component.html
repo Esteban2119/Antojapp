@@ -1,0 +1,74 @@
+<div class="container">
+ @if (!email) {
+  <div class="lookup">
+   <div class="lookup-card panel">
+    <div class="lookup-icon"><app-icon name="package" [size]="34" [stroke]="1.7" /></div>
+    <span class="eyebrow">Seguimiento</span>
+    <h1>Consulta tus pedidos</h1>
+    <p>Tus pedidos están enlazados al correo que usaste al comprar. Ingrésalo para ver su estado.</p>
+    <form (ngSubmit)="consultar()">
+     <label class="field email-field"><app-icon name="mail" [size]="18" /><input type="email" name="email" [(ngModel)]="emailInput" placeholder="tucorreo@ejemplo.com" autocomplete="email" required></label>
+     @if (error) { <div class="alert error"><app-icon name="alert" />{{error}}</div> }
+     <button class="btn btn-primary btn-lg btn-block" type="submit">Ver mis pedidos<app-icon name="arrowRight" [size]="18" /></button>
+    </form>
+    <a class="link" routerLink="/">¿Aún no pides? Explora el menú</a>
+   </div>
+  </div>
+ } @else {
+  <div class="page-head">
+   <div><span class="eyebrow">Seguimiento</span><h1>Mis pedidos</h1><p>Pedidos asociados a <b>{{email}}</b></p></div>
+   <div class="head-actions">
+    <button class="btn btn-ghost" (click)="cargar(true)"><app-icon name="refresh" [size]="16" />Actualizar</button>
+    <button class="btn btn-ghost" (click)="cambiarCorreo()"><app-icon name="mail" [size]="16" />Cambiar correo</button>
+   </div>
+  </div>
+  @if (error) { <div class="alert error"><app-icon name="alert" />{{error}}</div> }
+  @if (cargando) {
+   @for (i of [1,2]; track i) { <div class="skeleton order-skeleton"></div> }
+  } @else if (!pedidos.length) {
+   <div class="empty"><span class="empty-icon"><app-icon name="receipt" [size]="28" /></span><h3>No hay pedidos con este correo</h3><p>Verifica que sea el mismo correo que usaste al confirmar tu pedido.</p><a class="btn btn-primary" routerLink="/">Hacer un pedido</a></div>
+  } @else {
+   @if (activos.length) { <h2 class="group-title">En curso <span>{{activos.length}}</span></h2> }
+   @for (p of activos; track p.id) { <ng-container *ngTemplateOutlet="tarjeta; context:{$implicit:p}" /> }
+   @if (historial.length) { <h2 class="group-title">Historial <span>{{historial.length}}</span></h2> }
+   @for (p of historial; track p.id) { <ng-container *ngTemplateOutlet="tarjeta; context:{$implicit:p}" /> }
+  }
+ }
+</div>
+
+<ng-template #tarjeta let-p>
+ <article class="order panel">
+  <div class="order-head">
+   <div>
+    <small>Pedido #{{p.id}} · {{p.fecha | date:"d MMM, HH:mm"}}</small>
+    <h3><app-icon name="store" [size]="18" />{{p.restauranteNombre || 'Restaurante'}}</h3>
+   </div>
+   <span [class]="'badge estado-' + p.estado"><app-icon [name]="info(p).icono" [size]="13" />{{info(p).label}}</span>
+  </div>
+
+  @if (p.estado === 'RECHAZADO') {
+   <div class="alert error"><app-icon name="xCircle" />El restaurante no pudo aceptar este pedido.@if (p.motivoRechazo) { Motivo: “{{p.motivoRechazo}}”}</div>
+  } @else {
+   <div class="timeline">
+    @for (s of flujo; track s; let i = $index) {
+     <div class="t-step" [class.done]="i <= paso(p)" [class.current]="i === paso(p)">
+      <span class="dot"><app-icon [name]="i < paso(p) ? 'check' : estados[s].icono" [size]="15" /></span><small>{{estados[s].label}}</small>
+     </div>
+    }
+   </div>
+  }
+
+  <div class="order-body">
+   <ul class="items">
+    @for (d of detalle(p); track $index) {
+     <li><span><b>{{d.cantidad}}×</b> {{d.nombre}}@if (d.descuento) {<em> -{{d.descuento}}%</em>}</span><span>{{d.cantidad * d.precio | currency:'USD':'symbol-narrow'}}</span></li>
+    }
+   </ul>
+   <div class="order-meta">
+    <p><app-icon name="pin" [size]="15" /><span>{{p.direccion}}@if (p.referencia) {<br><small>{{p.referencia}}</small>}</span></p>
+    <p><app-icon name="phone" [size]="15" /><span>{{p.telefono}}</span></p>
+    <div class="order-total"><span>Total</span><strong>{{p.total | currency:'USD':'symbol-narrow'}}</strong></div>
+   </div>
+  </div>
+ </article>
+</ng-template>

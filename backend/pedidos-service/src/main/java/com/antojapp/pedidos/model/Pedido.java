@@ -6,6 +6,9 @@ import java.time.LocalDateTime;
 @Entity public class Pedido {
  @Id @GeneratedValue(strategy=GenerationType.IDENTITY) public Long id;
  public String cliente; public String direccion; public String estado="RECIBIDO";
+ public String email; public String telefono; public String referencia;
+ public Double latitud; public Double longitud;
+ public Long restauranteId; public String restauranteNombre; public String motivoRechazo;
  public BigDecimal total; public LocalDateTime fecha=LocalDateTime.now();
  @Column(length=4000) public String detalle; // JSON de productos: prototipo academico
  public Pedido(){}
