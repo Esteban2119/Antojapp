@@ -8,3 +8,7 @@ dist/
 
 # Archivos generados de Java
 target/
+
+docs/rules
+docs/rules/rules-java.md
+backend/config-server

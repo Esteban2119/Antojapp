@@ -11,3 +11,6 @@
 ## Verificación
 - Backend: `mvn -q compile` en cada servicio (`mvn spring-boot:run` para levantarlo; requiere PostgreSQL en 5432, contraseña `1234`).
 - Frontend: `npx ng build` en `frontend` (`npm start` para desarrollo en 4200).
+
+## Las reglas para agregar nuevas funcionalidas
+Solo lee este archivo cuando se trata de java: @docs/rules-java.md

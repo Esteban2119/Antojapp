@@ -1,0 +1,46 @@
+{
+    "properties": [
+        {
+            "name": "notificaciones.kafka.topic-solicitudes",
+            "type": "java.lang.String",
+            "description": "Topic de Kafka del que se consumen las solicitudes de notificación.",
+            "defaultValue": "notificaciones-solicitadas"
+        },
+        {
+            "name": "notificaciones.kafka.group-id",
+            "type": "java.lang.String",
+            "description": "Identificador del consumer group del servicio.",
+            "defaultValue": "notificaciones-service"
+        },
+        {
+            "name": "notificaciones.kafka.particiones",
+            "type": "java.lang.Integer",
+            "description": "Número de particiones del topic.",
+            "defaultValue": 3
+        },
+        {
+            "name": "notificaciones.kafka.replicas",
+            "type": "java.lang.Integer",
+            "description": "Factor de replicación del topic.",
+            "defaultValue": 1
+        },
+        {
+            "name": "notificaciones.kafka.reintentos",
+            "type": "java.lang.Integer",
+            "description": "Reintentos tras el primer intento fallido. Con 3 reintentos se hacen 4 intentos en total.",
+            "defaultValue": 3
+        },
+        {
+            "name": "notificaciones.kafka.espera-ms",
+            "type": "java.lang.Long",
+            "description": "Espera entre reintentos, en milisegundos.",
+            "defaultValue": 2000
+        },
+        {
+            "name": "notificaciones.remitente",
+            "type": "java.lang.String",
+            "description": "Remitente de las notificaciones enviadas, con formato 'Nombre <correo>'.",
+            "defaultValue": "AntojApp <no-reply@antojapp.local>"
+        }
+    ]
+}

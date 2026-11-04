@@ -2,4 +2,5 @@
 -- Si una base ya existe, no vuelvas a ejecutar su CREATE DATABASE.
 CREATE DATABASE antoj_restaurantes;
 CREATE DATABASE antoj_pedidos;
+CREATE DATABASE antoj_notificaciones;
 -- Las tablas se crean automaticamente al iniciar Spring Boot (JPA).
