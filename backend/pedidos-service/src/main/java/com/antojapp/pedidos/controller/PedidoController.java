@@ -1,6 +1,7 @@
 package com.antojapp.pedidos.controller;
 import com.antojapp.pedidos.model.Pedido;
 import com.antojapp.pedidos.repository.PedidoRepository;
+import com.antojapp.pedidos.service.PublicadorEventosPedido;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
 import java.math.BigDecimal;
@@ -18,7 +19,8 @@ public class PedidoController {
   "PREPARANDO",List.of("EN_CAMINO"),
   "EN_CAMINO",List.of("ENTREGADO"));
  private final PedidoRepository repo;
- public PedidoController(PedidoRepository repo){this.repo=repo;}
+ private final PublicadorEventosPedido eventos;
+ public PedidoController(PedidoRepository repo,PublicadorEventosPedido eventos){this.repo=repo;this.eventos=eventos;}
  // Los clientes consultan por correo y los restaurantes por su id
  @GetMapping public ResponseEntity<List<Pedido>> listar(@RequestParam(required=false) String email,@RequestParam(required=false) Long restauranteId){
   if(email!=null&&!email.isBlank())return ResponseEntity.ok(repo.findByEmailIgnoreCaseOrderByFechaDesc(email.trim()));
@@ -31,7 +33,9 @@ public class PedidoController {
   if(error!=null)return ResponseEntity.badRequest().body(Map.of("error",error));
   pedido.id=null;pedido.estado="RECIBIDO";pedido.motivoRechazo=null;pedido.fecha=java.time.LocalDateTime.now();
   pedido.email=pedido.email.trim().toLowerCase();pedido.cliente=pedido.cliente.trim();pedido.telefono=pedido.telefono.trim();
-  return ResponseEntity.ok(repo.save(pedido));
+  Pedido guardado=repo.save(pedido);
+  eventos.publicar(guardado);
+  return ResponseEntity.ok(guardado);
  }
  @PatchMapping("/{id}/estado") public ResponseEntity<?> actualizar(@PathVariable Long id,@RequestBody Map<String,String> body){
   Optional<Pedido> encontrado=repo.findById(id);
@@ -40,7 +44,9 @@ public class PedidoController {
   if(!TRANSICIONES.getOrDefault(p.estado,List.of()).contains(estado))return ResponseEntity.badRequest().body(Map.of("error","No se puede pasar de "+p.estado+" a "+estado));
   p.estado=estado;
   if("RECHAZADO".equals(estado))p.motivoRechazo=body.getOrDefault("motivo","");
-  return ResponseEntity.ok(repo.save(p));
+  Pedido guardado=repo.save(p);
+  eventos.publicar(guardado);
+  return ResponseEntity.ok(guardado);
  }
  private String validar(Pedido p){
   if(p.cliente==null||p.cliente.isBlank())return "El nombre es obligatorio";

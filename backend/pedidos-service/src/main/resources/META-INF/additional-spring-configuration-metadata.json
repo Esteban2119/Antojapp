@@ -1,0 +1,16 @@
+{
+  "properties": [
+    {
+      "name": "pedidos.kafka.topic-notificaciones",
+      "type": "java.lang.String",
+      "description": "Topic de Kafka en el que se publican las solicitudes de notificación.",
+      "defaultValue": "notificaciones-solicitadas"
+    },
+    {
+      "name": "pedidos.kafka.habilitado",
+      "type": "java.lang.Boolean",
+      "description": "Activa o desactiva la publicación de solicitudes de notificación. Útil para apagarla en pruebas sin broker.",
+      "defaultValue": true
+    }
+  ]
+}

@@ -1,0 +1,190 @@
+# AntojApp como stack de Docker Swarm (modo desarrollo, UN solo nodo).
+#
+# Este archivo NO es docker-compose.yml con otro nombre: `docker stack
+# deploy` ignora depends_on, restart y profiles, y exige rutas absolutas en
+# los bind mounts. Por eso:
+# - Cada servicio declara deploy.restart_policy: Swarm no respeta el orden de
+#   arranque, asi que los microservicios reintentan solos (cada 5 s) hasta
+#   que PostgreSQL y Kafka acepten conexiones.
+# - Los montajes de codigo usan ${PWD}: ejecuta los comandos desde la RAIZ
+#   del proyecto (es la unica forma portable de tener rutas absolutas).
+# - La kafka-ui va incluida sin profiles (Swarm no los soporta).
+#
+# IMPORTANTE: los montajes ${PWD}/backend y ${PWD}/frontend solo existen en
+# el nodo que ejecuta cada tarea, asi que este stack funciona en un swarm de
+# UN nodo (docker swarm init local). Para varios nodos habria que construir
+# imagenes con Dockerfile y publicarlas en un registry.
+#
+# Uso:
+#   docker swarm init                                   # solo la primera vez
+#   docker stack deploy -c docker-swarm.yml antojapp
+#   docker stack services antojapp
+#   docker service logs -f antojapp_pedidos-service
+#   docker stack rm antojapp
+services:
+  # SMTP falso para desarrollo local. Los correos NO salen a internet:
+  # se consultan en http://localhost:8025
+  mailpit:
+    image: docker.io/axllent/mailpit:v1.30.5
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+
+  # Kafka en modo KRaft (sin ZooKeeper). INTERNAL lo usan los microservicios
+  # del stack; EXTERNAL, los clientes del host: se publica en 9094 (el 9092
+  # del host lo ocupa otro proyecto local) y se anuncia localhost:9094.
+  kafka:
+    image: docker.io/apache/kafka:3.9.0
+    ports:
+      - "9094:9094"
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: INTERNAL://:9092,EXTERNAL://:9094,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:9092,EXTERNAL://localhost:9094
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@localhost:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_NUM_PARTITIONS: 3
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092"]
+      interval: 10s
+      timeout: 10s
+      retries: 12
+      start_period: 20s
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+
+  kafka-ui:
+    image: docker.io/provectuslabs/kafka-ui:latest
+    ports:
+      - "8090:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: antojapp
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+
+  # PostgreSQL con las tres bases del proyecto. El script crea
+  # antoj_restaurantes, antoj_pedidos y antoj_notificaciones la primera vez
+  # que se inicializa el volumen (despues ya no se ejecuta).
+  postgres:
+    image: docker.io/library/postgres:17-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: "1234"
+    ports:
+      # 5434 en el host para no chocar con otros proyectos locales; es solo
+      # para pgAdmin, los microservicios usan la red interna (postgres:5432).
+      - "5434:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ${PWD}/database/crear_bases.sql:/docker-entrypoint-initdb.d/01-crear_bases.sql:ro
+    healthcheck:
+      # -h 127.0.0.1 fuerza TCP para no dar un falso positivo durante la fase
+      # de inicializacion (el servidor temporal solo escucha el socket unix).
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+
+  # Microservicios: Maven compila y ejecuta con el codigo montado desde el
+  # host. La cache maven-cache se comparte entre los tres para descargar las
+  # dependencias una sola vez.
+  restaurantes-service:
+    image: docker.io/library/maven:3.9-eclipse-temurin-17
+    working_dir: /app
+    command: mvn spring-boot:run
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/antoj_restaurantes
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: "1234"
+    ports:
+      - "8081:8081"
+    volumes:
+      - ${PWD}/backend/restaurantes-service:/app
+      - maven-cache:/root/.m2
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+
+  pedidos-service:
+    image: docker.io/library/maven:3.9-eclipse-temurin-17
+    working_dir: /app
+    command: mvn spring-boot:run
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/antoj_pedidos
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: "1234"
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    ports:
+      - "8082:8082"
+    volumes:
+      - ${PWD}/backend/pedidos-service:/app
+      - maven-cache:/root/.m2
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+
+  notificaciones-service:
+    image: docker.io/library/maven:3.9-eclipse-temurin-17
+    working_dir: /app
+    command: mvn spring-boot:run
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/antoj_notificaciones
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: "1234"
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SPRING_MAIL_HOST: mailpit
+      SPRING_MAIL_PORT: "1025"
+    ports:
+      - "8083:8083"
+    volumes:
+      - ${PWD}/backend/notificaciones-service:/app
+      - maven-cache:/root/.m2
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+
+  # Angular 19 con recarga en caliente. El volumen nombrado aislana el
+  # node_modules del contenedor del que ya existe en el host; --poll detecta
+  # cambios haciendo polling del sistema de archivos.
+  frontend:
+    image: docker.io/library/node:22-alpine
+    working_dir: /app
+    command: sh -c "npm install && npx ng serve --host 0.0.0.0 --port 4200 --poll 2000"
+    ports:
+      - "4200:4200"
+    volumes:
+      - ${PWD}/frontend:/app
+      - frontend-node-modules:/app/node_modules
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+
+volumes:
+  postgres-data:
+  maven-cache:
+  frontend-node-modules:
