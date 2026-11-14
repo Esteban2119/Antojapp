@@ -1,5 +1,6 @@
 package com.antojapp.pedidos.service;
 
+import com.antojapp.pedidos.config.PedidosNotificacionesProperties;
 import com.antojapp.pedidos.evento.SolicitudNotificacion;
 import com.antojapp.pedidos.model.Pedido;
 import org.slf4j.Logger;
@@ -26,24 +27,18 @@ public class PublicadorEventosPedido {
 
   private static final Logger log = LoggerFactory.getLogger(PublicadorEventosPedido.class);
 
-  // Estado del pedido -> plantilla de notificacion que corresponde enviar.
-  // Los estados sin plantilla (por ejemplo PREPARANDO) no generan solicitud.
-  private static final Map<String, String> PLANTILLAS = Map.of(
-      "RECIBIDO", "PEDIDO_RECIBIDO",
-      "CONFIRMADO", "PEDIDO_CONFIRMADO",
-      "EN_CAMINO", "PEDIDO_EN_CAMINO",
-      "ENTREGADO", "PEDIDO_ENTREGADO",
-      "RECHAZADO", "PEDIDO_RECHAZADO");
-
   private final KafkaTemplate<Object, Object> kafkaTemplate;
+  private final PedidosNotificacionesProperties notificacionProps;
   private final String topic;
   private final boolean habilitado;
 
   public PublicadorEventosPedido(
       KafkaTemplate<Object, Object> kafkaTemplate,
+      PedidosNotificacionesProperties notificacionProps,
       @Value("${pedidos.kafka.topic-notificaciones:notificaciones-solicitadas}") String topic,
       @Value("${pedidos.kafka.habilitado:true}") boolean habilitado) {
     this.kafkaTemplate = kafkaTemplate;
+    this.notificacionProps = notificacionProps;
     this.topic = topic;
     this.habilitado = habilitado;
   }
@@ -52,7 +47,7 @@ public class PublicadorEventosPedido {
     if (!habilitado)
       return;
 
-    String codigoPlantilla = PLANTILLAS.get(estado(pedido));
+    String codigoPlantilla = notificacionProps.getPlantillas().get(estado(pedido));
     if (codigoPlantilla == null)
       return;
 

@@ -10,5 +10,5 @@ dist/
 target/
 
 docs/rules
-docs/rules/rules-java.md
-backend/config-server
+docs/rules-java.md
+backend/config-server/apache-maven-3.9.6-bin.zip

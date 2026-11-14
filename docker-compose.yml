@@ -1,16 +1,3 @@
-# AntojApp en modo desarrollo: TODO el proyecto corre en contenedores con el
-# codigo fuente montado como volumen. El frontend recarga solo al guardar
-# cambios; para ver un cambio en Java hay que reiniciar su servicio:
-#   docker compose restart pedidos-service
-#
-# Los application.properties apuntan a localhost; dentro de la red de Docker
-# eso se sobrescribe con variables de entorno (SPRING_DATASOURCE_URL,
-# SPRING_KAFKA_BOOTSTRAP_SERVERS, SPRING_MAIL_HOST) hacia los nombres de los
-# contenedores.
-#
-# El primer arranque descarga dependencias de Maven y npm (tarda varios
-# minutos); los siguientes reutilizan los volumenes de cache. La version para
-# Docker Swarm esta en docker-swarm.yml.
 services:
   # SMTP falso para desarrollo local. Los correos NO salen a internet:
   # se consultan en http://localhost:8025
@@ -95,6 +82,24 @@ services:
       retries: 12
       start_period: 10s
 
+  # Servidor de configuracion centralizada (Spring Cloud Config).
+  config-server:
+    image: docker.io/library/maven:3.9-eclipse-temurin-17
+    restart: unless-stopped
+    working_dir: /app
+    command: mvn spring-boot:run
+    ports:
+      - "8888:8888"
+    volumes:
+      - ./backend/config-server:/app
+      - maven-cache:/root/.m2
+    healthcheck:
+      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/8888"]
+      interval: 5s
+      timeout: 5s
+      retries: 24
+      start_period: 15s
+
   # Microservicios: Maven compila y ejecuta con el codigo montado desde el
   # host. La cache maven-cache se comparte entre los tres para descargar las
   # dependencias una sola vez.
@@ -106,7 +111,10 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      config-server:
+        condition: service_healthy
     environment:
+      SPRING_CONFIG_IMPORT: optional:configserver:http://config-server:8888
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/antoj_restaurantes
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: "1234"
@@ -126,7 +134,10 @@ services:
         condition: service_healthy
       kafka:
         condition: service_healthy
+      config-server:
+        condition: service_healthy
     environment:
+      SPRING_CONFIG_IMPORT: optional:configserver:http://config-server:8888
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/antoj_pedidos
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: "1234"
@@ -149,7 +160,10 @@ services:
         condition: service_healthy
       mailpit:
         condition: service_started
+      config-server:
+        condition: service_healthy
     environment:
+      SPRING_CONFIG_IMPORT: optional:configserver:http://config-server:8888
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/antoj_notificaciones
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: "1234"

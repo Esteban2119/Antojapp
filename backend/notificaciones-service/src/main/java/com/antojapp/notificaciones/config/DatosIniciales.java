@@ -11,9 +11,11 @@ import org.springframework.stereotype.Component;
 @Component
 public class DatosIniciales implements CommandLineRunner {
   private final PlantillaNotificacionRepository repo;
+  private final PlantillasProperties plantillasProps;
 
-  public DatosIniciales(PlantillaNotificacionRepository repo) {
+  public DatosIniciales(PlantillaNotificacionRepository repo, PlantillasProperties plantillasProps) {
     this.repo = repo;
+    this.plantillasProps = plantillasProps;
   }
 
   @Override
@@ -58,12 +60,12 @@ public class DatosIniciales implements CommandLineRunner {
             """));
   }
 
-  private void guardar(String codigo, String nombre, String asunto, String cuerpo) {
+  private void guardar(String codigo, String nombre, String asuntoPorDefecto, String cuerpo) {
     PlantillaNotificacion plantilla = PlantillaNotificacion.builder()
         .codigo(codigo)
         .nombre(nombre)
         .canal(CanalNotificacion.EMAIL)
-        .asunto(asunto)
+        .asunto(plantillasProps.asunto(codigo, asuntoPorDefecto))
         .cuerpo(cuerpo)
         .activa(true)
         .build();
