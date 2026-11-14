@@ -106,6 +106,21 @@ services:
         condition: on-failure
         delay: 5s
 
+  # Servidor de configuracion centralizada (Spring Cloud Config).
+  config-server:
+    image: docker.io/library/maven:3.9-eclipse-temurin-17
+    working_dir: /app
+    command: mvn spring-boot:run
+    ports:
+      - "8888:8888"
+    volumes:
+      - ${PWD}/backend/config-server:/app
+      - maven-cache:/root/.m2
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+
   # Microservicios: Maven compila y ejecuta con el codigo montado desde el
   # host. La cache maven-cache se comparte entre los tres para descargar las
   # dependencias una sola vez.
@@ -114,6 +129,7 @@ services:
     working_dir: /app
     command: mvn spring-boot:run
     environment:
+      SPRING_CONFIG_IMPORT: optional:configserver:http://config-server:8888
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/antoj_restaurantes
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: "1234"
@@ -132,6 +148,7 @@ services:
     working_dir: /app
     command: mvn spring-boot:run
     environment:
+      SPRING_CONFIG_IMPORT: optional:configserver:http://config-server:8888
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/antoj_pedidos
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: "1234"
@@ -151,6 +168,7 @@ services:
     working_dir: /app
     command: mvn spring-boot:run
     environment:
+      SPRING_CONFIG_IMPORT: optional:configserver:http://config-server:8888
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/antoj_notificaciones
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: "1234"
